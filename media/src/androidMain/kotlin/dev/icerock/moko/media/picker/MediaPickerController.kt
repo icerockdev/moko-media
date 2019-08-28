@@ -1,0 +1,399 @@
+/*
+ * Copyright 2019 IceRock MAG Inc. Use of this source code is governed by the Apache 2.0 license.
+ */
+
+package dev.icerock.moko.media.picker
+
+import android.app.Activity
+import android.content.Intent
+import android.graphics.BitmapFactory
+import android.net.Uri
+import android.os.Environment
+import android.provider.MediaStore
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentManager
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleObserver
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.OnLifecycleEvent
+import com.nbsp.materialfilepicker.ui.FilePickerActivity
+import com.nbsp.materialfilepicker.ui.FilePickerActivity.ARG_CLOSEABLE
+import dev.icerock.moko.media.*
+import dev.icerock.moko.permissions.Permission
+import dev.icerock.moko.permissions.PermissionsController
+import java.io.File
+import java.io.InputStream
+import kotlin.coroutines.suspendCoroutine
+
+actual class MediaPickerController(
+    val permissionsController: PermissionsController,
+    val pickerFragmentTag: String = "MediaControllerPicker",
+    val filePickerFragmentTag: String = "FileMediaControllerPicker"
+) {
+    var fragmentManager: FragmentManager? = null
+
+    fun bind(lifecycle: Lifecycle, fragmentManager: FragmentManager) {
+        permissionsController.bind(lifecycle, fragmentManager)
+
+        this.fragmentManager = fragmentManager
+
+        val observer = object : LifecycleObserver {
+
+            @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
+            fun onDestroyed(source: LifecycleOwner) {
+                this@MediaPickerController.fragmentManager = null
+                source.lifecycle.removeObserver(this)
+            }
+        }
+        lifecycle.addObserver(observer)
+    }
+
+    actual suspend fun pickImage(source: MediaSource): Bitmap {
+        val fragmentManager =
+            fragmentManager ?: throw IllegalStateException("can't pick image without active window")
+
+        source.requiredPermissions().forEach { permission ->
+            permissionsController.providePermission(permission)
+        }
+
+        val currentFragment: Fragment? = fragmentManager.findFragmentByTag(pickerFragmentTag)
+        val pickerFragment: PickerFragment = if (currentFragment != null) {
+            currentFragment as PickerFragment
+        } else {
+            PickerFragment().apply {
+                fragmentManager
+                    .beginTransaction()
+                    .add(this, pickerFragmentTag)
+                    .commitNow()
+            }
+        }
+
+        val bitmap = suspendCoroutine<android.graphics.Bitmap> { continuation ->
+            val action: (Result<android.graphics.Bitmap>) -> Unit = { continuation.resumeWith(it) }
+            when (source) {
+                MediaSource.GALLERY -> pickerFragment.pickGalleryImage(action)
+                MediaSource.CAMERA -> pickerFragment.pickCameraImage(action)
+            }
+        }
+
+        return Bitmap(bitmap)
+    }
+
+    actual suspend fun pickMedia(): Media {
+        val fragmentManager =
+            fragmentManager ?: throw IllegalStateException("can't pick image without active window")
+
+        permissionsController.providePermission(Permission.GALLERY)
+
+        val currentFragment: Fragment? = fragmentManager.findFragmentByTag(pickerFragmentTag)
+        val pickerFragment: MediaPickerFragment = if (currentFragment != null) {
+            currentFragment as MediaPickerFragment
+        } else {
+            MediaPickerFragment().apply {
+                fragmentManager
+                    .beginTransaction()
+                    .add(this, pickerFragmentTag)
+                    .commitNow()
+            }
+        }
+
+        return suspendCoroutine { continuation ->
+            val action: (Result<Media>) -> Unit = { continuation.resumeWith(it) }
+            pickerFragment.pickMedia(action)
+        }
+    }
+
+    actual suspend fun pickFiles(): FileMedia {
+        val fragmentManager =
+            fragmentManager ?: throw IllegalStateException("can't pick image without active window")
+
+
+        permissionsController.providePermission(Permission.STORAGE)
+
+        val currentFragment: Fragment? = fragmentManager.findFragmentByTag(filePickerFragmentTag)
+        val pickerFragment: FilePickerFragment = if (currentFragment != null) {
+            currentFragment as FilePickerFragment
+        } else {
+            FilePickerFragment().apply {
+                fragmentManager
+                    .beginTransaction()
+                    .add(this, pickerFragmentTag)
+                    .commitNow()
+            }
+        }
+
+        val path = suspendCoroutine<FileMedia> { continuation ->
+            val action: (Result<FileMedia>) -> Unit = { continuation.resumeWith(it) }
+            pickerFragment.pickFile(action)
+        }
+
+        return path
+    }
+
+    private fun MediaSource.requiredPermissions(): List<Permission> {
+        return when (this) {
+            MediaSource.GALLERY -> listOf(Permission.GALLERY)
+            MediaSource.CAMERA -> listOf(Permission.CAMERA)
+        }
+    }
+
+    class PickerFragment : Fragment() {
+        init {
+            retainInstance = true
+        }
+
+        private val codeCallbackMap = mutableMapOf<Int, CallbackData>()
+
+        fun pickGalleryImage(callback: (Result<android.graphics.Bitmap>) -> Unit) {
+            val requestCode = codeCallbackMap.keys.sorted().lastOrNull() ?: 0
+
+            codeCallbackMap[requestCode] =
+                CallbackData.Gallery(
+                    callback
+                )
+
+            val intent = Intent(
+                Intent.ACTION_PICK,
+                MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+            )
+            startActivityForResult(intent, requestCode)
+        }
+
+        fun pickCameraImage(callback: (Result<android.graphics.Bitmap>) -> Unit) {
+            val requestCode = codeCallbackMap.keys.sorted().lastOrNull() ?: 0
+
+            val outputUri = createPhotoUri()
+            codeCallbackMap[requestCode] =
+                CallbackData.Camera(
+                    callback,
+                    outputUri
+                )
+
+            val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+                .putExtra(MediaStore.EXTRA_OUTPUT, outputUri)
+            startActivityForResult(intent, requestCode)
+        }
+
+        private fun createPhotoUri(): Uri {
+            val context = requireContext()
+            val filesDir = context.getExternalFilesDir(Environment.DIRECTORY_PICTURES)
+            return Uri.fromFile(
+                File(
+                    filesDir,
+                    DEFAULT_FILE_NAME
+                )
+            )
+        }
+
+        override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+            super.onActivityResult(requestCode, resultCode, data)
+
+            val callbackData = codeCallbackMap[requestCode] ?: return
+            codeCallbackMap.remove(requestCode)
+
+            val callback = callbackData.callback
+
+            if (resultCode == Activity.RESULT_CANCELED) {
+                callback.invoke(Result.failure(CanceledException()))
+                return
+            }
+
+            when (callbackData) {
+                is CallbackData.Gallery -> processGalleryResult(callback, data)
+                is CallbackData.Camera -> processCameraResult(
+                    callback,
+                    callbackData.outputUri
+                )
+            }
+        }
+
+        private fun processGalleryResult(
+            callback: (Result<android.graphics.Bitmap>) -> Unit,
+            data: Intent?
+        ) {
+            val uri = data?.data
+            if (uri == null) {
+                callback.invoke(Result.failure(IllegalArgumentException(data?.toString())))
+                return
+            }
+
+            val contentResolver = requireContext().contentResolver
+            val inputStream = contentResolver.openInputStream(uri)
+            if (inputStream == null) {
+                callback.invoke(Result.failure(NoAccessToFileException(uri.toString())))
+                return
+            }
+            val bitmap = BitmapFactory.decodeStream(inputStream)
+            callback.invoke(Result.success(bitmap))
+        }
+
+        private fun processCameraResult(
+            callback: (Result<android.graphics.Bitmap>) -> Unit,
+            outputUri: Uri
+        ) {
+            val contentResolver = requireContext().contentResolver
+            val inputStream = contentResolver.openInputStream(outputUri)
+            if (inputStream == null) {
+                callback.invoke(Result.failure(NoAccessToFileException(outputUri.toString())))
+                return
+            }
+            val bitmap = decodeImage(outputUri.path.orEmpty(), inputStream)
+            callback.invoke(Result.success(bitmap))
+        }
+
+        private fun decodeImage(
+            filename: String,
+            inputStream: InputStream
+        ): android.graphics.Bitmap {
+            val bitmap = BitmapFactory.decodeStream(inputStream)
+            val angle = BitmapUtils.getAngle(filename)
+            return BitmapUtils.cloneRotated(bitmap, angle)
+        }
+
+        sealed class CallbackData(val callback: (Result<android.graphics.Bitmap>) -> Unit) {
+            class Gallery(callback: (Result<android.graphics.Bitmap>) -> Unit) :
+                CallbackData(callback)
+
+            class Camera(
+                callback: (Result<android.graphics.Bitmap>) -> Unit,
+                val outputUri: Uri
+            ) : CallbackData(callback)
+        }
+
+        private companion object {
+            const val DEFAULT_FILE_NAME = "image.png"
+        }
+    }
+
+    class MediaPickerFragment : Fragment() {
+
+        private val codeCallbackMap = mutableMapOf<Int, CallbackData>()
+
+        init {
+            retainInstance = true
+        }
+
+        fun pickVideo(callback: (Result<Media>) -> Unit) {
+            val requestCode = codeCallbackMap.keys.sorted().lastOrNull() ?: 0
+
+            codeCallbackMap[requestCode] =
+                CallbackData(
+                    callback
+                )
+
+            val intent = Intent().apply {
+                type = "video/*"
+                action = Intent.ACTION_GET_CONTENT
+            }
+
+            startActivityForResult(intent, requestCode)
+        }
+
+        fun pickMedia(callback: (Result<Media>) -> Unit) {
+            val requestCode = codeCallbackMap.keys.sorted().lastOrNull() ?: 0
+
+            codeCallbackMap[requestCode] =
+                CallbackData(
+                    callback
+                )
+
+            val intent = Intent().apply {
+                type = "image/* video/*"
+                action = Intent.ACTION_GET_CONTENT
+                putExtra(Intent.EXTRA_MIME_TYPES, arrayOf("video/*", "image/*"))
+            }
+            startActivityForResult(intent, requestCode)
+        }
+
+        override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+            super.onActivityResult(requestCode, resultCode, data)
+
+            val callbackData = codeCallbackMap[requestCode] ?: return
+            codeCallbackMap.remove(requestCode)
+
+            val callback = callbackData.callback
+
+            if (resultCode == Activity.RESULT_CANCELED) {
+                callback.invoke(Result.failure(CanceledException()))
+                return
+            }
+
+            processResult(callback, data)
+        }
+
+        private fun processResult(
+            callback: (Result<Media>) -> Unit,
+            data: Intent?
+        ) {
+            val context = this.context
+            if (context == null) {
+                callback(Result.failure(IllegalStateException("context unavailable")))
+                return
+            }
+            if (data == null) {
+                callback(Result.failure(IllegalStateException("data unavailable")))
+                return
+            }
+
+            val result = kotlin.runCatching {
+                MediaFactory.create(context, data.data)
+            }
+            callback.invoke(result)
+        }
+
+        class CallbackData(val callback: (Result<Media>) -> Unit)
+    }
+
+    class FilePickerFragment : Fragment() {
+        init {
+            retainInstance = true
+        }
+
+        private val codeCallbackMap = mutableMapOf<Int, CallbackData>()
+
+        fun pickFile(callback: (Result<FileMedia>) -> Unit) {
+            val requestCode = codeCallbackMap.keys.sorted().lastOrNull() ?: 0
+
+            codeCallbackMap[requestCode] =
+                CallbackData(
+                    callback
+                )
+
+            // TODO нужно убрать использование внешней зависимости, сделать конфигурацию способа
+            //  выбора файла из вне (аргументом в контроллер передавать)
+            val intent = Intent(requireContext(), FilePickerActivity::class.java)
+            intent.putExtra(ARG_CLOSEABLE, true)
+            startActivityForResult(intent, requestCode)
+        }
+
+        override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+            super.onActivityResult(requestCode, resultCode, data)
+
+            val callbackData = codeCallbackMap[requestCode] ?: return
+            codeCallbackMap.remove(requestCode)
+
+            val callback = callbackData.callback
+
+            if (resultCode == Activity.RESULT_CANCELED) {
+                callback.invoke(Result.failure(CanceledException()))
+                return
+            }
+
+            processResult(callback, data)
+        }
+
+        private fun processResult(
+            callback: (Result<FileMedia>) -> Unit,
+            data: Intent?
+        ) {
+            val filePath = data?.getStringExtra(FilePickerActivity.RESULT_FILE_PATH)
+
+            filePath?.let { path ->
+                val name = File(path).name
+                callback(Result.success(FileMedia(name, path)))
+            }
+        }
+
+        class CallbackData(val callback: (Result<FileMedia>) -> Unit)
+    }
+}
