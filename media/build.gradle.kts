@@ -2,8 +2,6 @@
  * Copyright 2019 IceRock MAG Inc. Use of this source code is governed by the Apache 2.0 license.
  */
 
-import java.net.URI
-
 plugins {
     id("com.android.library")
     id("org.jetbrains.kotlin.multiplatform")
@@ -13,7 +11,7 @@ plugins {
 }
 
 group = "dev.icerock.moko"
-version = "0.1.0"
+version = Versions.Libs.MultiPlatform.mokoMedia
 
 android {
     compileSdkVersion(Versions.Android.compileSdk)

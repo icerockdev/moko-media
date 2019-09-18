@@ -24,6 +24,7 @@ setupFramework(
 
 dependencies {
     mppLibrary(Deps.Libs.MultiPlatform.kotlinStdLib)
+    mppLibrary(Deps.Libs.MultiPlatform.coroutines)
 
     libs.forEach { mppLibrary(it) }
 }

@@ -22,6 +22,7 @@ object Versions {
         }
 
         object MultiPlatform {
+            const val coroutines = "1.3.0"
             const val mokoPermissions = "0.1.0"
             const val mokoMedia = "0.1.0"
         }
