@@ -1,5 +1,5 @@
 ![moko-media](img/logo.png)  
-[![GitHub license](https://img.shields.io/badge/license-Apache%20License%202.0-blue.svg?style=flat)](http://www.apache.org/licenses/LICENSE-2.0) [![Download](https://api.bintray.com/packages/icerockdev/moko/moko-media/images/download.svg) ](https://bintray.com/icerockdev/moko/moko-media/_latestVersion) ![kotlin-version](https://img.shields.io/badge/kotlin-1.3.60-orange)
+[![GitHub license](https://img.shields.io/badge/license-Apache%20License%202.0-blue.svg?style=flat)](http://www.apache.org/licenses/LICENSE-2.0) [![Download](https://api.bintray.com/packages/icerockdev/moko/moko-media/images/download.svg) ](https://bintray.com/icerockdev/moko/moko-media/_latestVersion) ![kotlin-version](https://img.shields.io/badge/kotlin-1.3.61-orange)
 
 # Mobile Kotlin media access
 This is a Kotlin MultiPlatform library that provides media picking in common code (photo/video) and video player controls. 
@@ -25,7 +25,7 @@ TODO
 ## Versions
 - kotlin 1.3.50
   - 0.1.0
-- kotlin 1.3.60
+- kotlin 1.3.61
   - 0.2.0
 
 ## Installation
