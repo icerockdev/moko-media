@@ -76,7 +76,7 @@ actual class MediaPlayerController {
     }
 
     actual fun isPlaying(): Boolean {
-        return player?.timeControlStatus == AVPlayerTimeControlStatus.AVPlayerTimeControlStatusPlaying
+        return player?.timeControlStatus == AVPlayerTimeControlStatusPlaying
     }
 
     actual fun release() {
