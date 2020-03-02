@@ -35,7 +35,7 @@ import kotlin.coroutines.Continuation
 import kotlin.coroutines.suspendCoroutine
 
 actual class MediaPickerController(
-    private val permissionsController: PermissionsController,
+    val permissionsController: PermissionsController,
     private val getViewController: () -> UIViewController
 ) {
     constructor(
