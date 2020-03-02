@@ -19,15 +19,33 @@ import platform.CoreServices.kUTTypeMovie
 import platform.CoreServices.kUTTypeVideo
 import platform.Foundation.CFBridgingRelease
 import platform.Foundation.NSURL
-import platform.UIKit.*
+import platform.UIKit.UIImage
+import platform.UIKit.UIImagePickerController
+import platform.UIKit.UIImagePickerControllerDelegateProtocol
+import platform.UIKit.UIImagePickerControllerEditedImage
+import platform.UIKit.UIImagePickerControllerImageURL
+import platform.UIKit.UIImagePickerControllerMediaType
+import platform.UIKit.UIImagePickerControllerMediaURL
+import platform.UIKit.UIImagePickerControllerOriginalImage
+import platform.UIKit.UIImagePickerControllerSourceType
+import platform.UIKit.UINavigationControllerDelegateProtocol
+import platform.UIKit.UIViewController
 import platform.darwin.NSObject
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.suspendCoroutine
 
 actual class MediaPickerController(
-    val permissionsController: PermissionsController,
-    val viewController: UIViewController
+    private val permissionsController: PermissionsController,
+    private val getViewController: () -> UIViewController
 ) {
+    constructor(
+        permissionsController: PermissionsController,
+        viewController: UIViewController
+    ) : this(
+        permissionsController = permissionsController,
+        getViewController = { viewController }
+    )
+
     actual suspend fun pickImage(source: MediaSource): Bitmap {
         source.requiredPermissions().forEach { permission ->
             permissionsController.providePermission(permission)
@@ -41,7 +59,7 @@ actual class MediaPickerController(
             controller.sourceType = source.toSourceType()
             controller.mediaTypes = listOf(kImageType)
             controller.delegate = delegatePtr
-            viewController.presentViewController(controller, animated = true, completion = null)
+            getViewController().presentViewController(controller, animated = true, completion = null)
         }
         delegatePtr = null
 
@@ -153,7 +171,7 @@ actual class MediaPickerController(
                 UIImagePickerControllerSourceType.UIImagePickerControllerSourceTypePhotoLibrary
             controller.mediaTypes = listOf(kImageType, kVideoType, kMovieType)
             controller.delegate = delegatePtr
-            viewController.presentViewController(controller, animated = true, completion = null)
+            getViewController().presentViewController(controller, animated = true, completion = null)
         }
         delegatePtr = null
 
