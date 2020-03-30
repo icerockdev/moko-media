@@ -15,8 +15,16 @@ allprojects {
         maven { url = uri("http://dl.bintray.com/lukaville/maven") }
     }
 
-    // workaround for https://youtrack.jetbrains.com/issue/KT-27170
-    configurations.create("compileClasspath")
+    // Workaround for https://youtrack.jetbrains.com/issue/KT-36721.
+    pluginManager.withPlugin("kotlin-multiplatform") {
+        val kotlinExtension = project.extensions.getByName("kotlin")
+                as org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
+        val uniqueName = "${project.group}.${project.name}"
+
+        kotlinExtension.targets.withType(org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget::class.java) {
+            compilations["main"].kotlinOptions.freeCompilerArgs += listOf("-module-name", uniqueName)
+        }
+    }
 }
 
 tasks.register("clean", Delete::class).configure {
