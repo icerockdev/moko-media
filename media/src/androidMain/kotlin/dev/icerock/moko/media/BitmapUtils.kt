@@ -5,9 +5,11 @@
 package dev.icerock.moko.media
 
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Matrix
 import android.media.ExifInterface
 import java.io.IOException
+import java.io.InputStream
 
 object BitmapUtils {
 
@@ -47,6 +49,45 @@ object BitmapUtils {
             width = (height * bitmapRatio).toInt()
         }
         return Bitmap.createScaledBitmap(bitmap, width, height, true)
+    }
+
+    fun getBitmapForStream(
+        inputStream: InputStream,
+        maxImageWidth: Int,
+        maxImageHeight: Int
+    ): Bitmap {
+        val bitmapOptions = BitmapFactory.Options().apply {
+            inJustDecodeBounds = true
+        }
+        val bitmapBytes = inputStream.readBytes()
+        BitmapFactory.decodeByteArray(bitmapBytes, 0, bitmapBytes.size, bitmapOptions)
+
+        bitmapOptions.apply {
+            inSampleSize = calculateInSampleSize(bitmapOptions, maxImageWidth, maxImageHeight)
+            inJustDecodeBounds = false
+        }
+        return BitmapFactory.decodeByteArray(bitmapBytes, 0, bitmapBytes.size, bitmapOptions)
+    }
+
+    private fun calculateInSampleSize(
+        options: BitmapFactory.Options,
+        maxWidth: Int,
+        maxHeight: Int
+    ): Int {
+        val (height: Int, width: Int) = options.run { outHeight to outWidth }
+        var inSampleSize = 1
+
+        if (height > maxHeight || width > maxWidth) {
+
+            val halfHeight: Int = height / 2
+            val halfWidth: Int = width / 2
+
+            while (halfHeight / inSampleSize >= maxHeight && halfWidth / inSampleSize >= maxWidth) {
+                inSampleSize *= 2
+            }
+        }
+
+        return inSampleSize
     }
 
     private const val DEFAULT_MAX_SIZE = 500
