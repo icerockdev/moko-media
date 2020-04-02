@@ -8,6 +8,7 @@ import android.app.Activity
 import android.content.Intent
 import android.graphics.BitmapFactory
 import android.net.Uri
+import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
 import androidx.fragment.app.Fragment
@@ -19,6 +20,11 @@ import androidx.lifecycle.OnLifecycleEvent
 import com.nbsp.materialfilepicker.ui.FilePickerActivity
 import com.nbsp.materialfilepicker.ui.FilePickerActivity.ARG_CLOSEABLE
 import dev.icerock.moko.media.*
+import dev.icerock.moko.media.BitmapUtils.calculateInSampleSize
+import dev.icerock.moko.media.BitmapUtils.getBitmapForStream
+import dev.icerock.moko.media.BitmapUtils.getBitmapOptionsFromStream
+import dev.icerock.moko.media.picker.MediaPickerController.PickerFragment.Companion.ARG_IMG_MAX_HEIGHT
+import dev.icerock.moko.media.picker.MediaPickerController.PickerFragment.Companion.ARG_IMG_MAX_WIDTH
 import dev.icerock.moko.permissions.Permission
 import dev.icerock.moko.permissions.PermissionsController
 import java.io.File
@@ -49,6 +55,15 @@ actual class MediaPickerController(
     }
 
     actual suspend fun pickImage(source: MediaSource): Bitmap {
+        return pickImage(source, DEFAULT_MAX_IMAGE_WIDTH, DEFAULT_MAX_IMAGE_HEIGHT)
+    }
+
+    /**
+     * A default values for [maxWidth] and [maxHeight] arguments are not used because bug of kotlin
+     * compiler. Default values for suspend functions don't work correctly.
+     * (Look here: https://youtrack.jetbrains.com/issue/KT-37331)
+     */
+    actual suspend fun pickImage(source: MediaSource, maxWidth: Int, maxHeight: Int): Bitmap {
         val fragmentManager =
             fragmentManager ?: throw IllegalStateException("can't pick image without active window")
 
@@ -61,6 +76,10 @@ actual class MediaPickerController(
             currentFragment as PickerFragment
         } else {
             PickerFragment().apply {
+                arguments = Bundle().apply {
+                    putInt(ARG_IMG_MAX_WIDTH, maxWidth)
+                    putInt(ARG_IMG_MAX_HEIGHT, maxHeight)
+                }
                 fragmentManager
                     .beginTransaction()
                     .add(this, pickerFragmentTag)
@@ -144,6 +163,17 @@ actual class MediaPickerController(
 
         private val codeCallbackMap = mutableMapOf<Int, CallbackData>()
 
+        private var maxImageWidth = DEFAULT_MAX_IMAGE_WIDTH
+        private var maxImageHeight = DEFAULT_MAX_IMAGE_HEIGHT
+
+        override fun onActivityCreated(savedInstanceState: Bundle?) {
+            super.onActivityCreated(savedInstanceState)
+            maxImageWidth = arguments?.getInt(ARG_IMG_MAX_WIDTH, DEFAULT_MAX_IMAGE_WIDTH)
+                ?: DEFAULT_MAX_IMAGE_WIDTH
+            maxImageHeight = arguments?.getInt(ARG_IMG_MAX_HEIGHT, DEFAULT_MAX_IMAGE_HEIGHT)
+                ?: DEFAULT_MAX_IMAGE_HEIGHT
+        }
+
         fun pickGalleryImage(callback: (Result<android.graphics.Bitmap>) -> Unit) {
             val requestCode = codeCallbackMap.keys.sorted().lastOrNull() ?: 0
 
@@ -218,13 +248,32 @@ actual class MediaPickerController(
             }
 
             val contentResolver = requireContext().contentResolver
-            val inputStream = contentResolver.openInputStream(uri)
+            var inputStream = contentResolver.openInputStream(uri)
             if (inputStream == null) {
                 callback.invoke(Result.failure(NoAccessToFileException(uri.toString())))
                 return
             }
-            val bitmap = BitmapFactory.decodeStream(inputStream)
-            callback.invoke(Result.success(bitmap))
+
+            val bitmapOptions = getBitmapOptionsFromStream(inputStream)
+            inputStream.close()
+
+            inputStream = contentResolver.openInputStream(uri)
+            if (inputStream == null) {
+                callback.invoke(Result.failure(NoAccessToFileException(uri.toString())))
+                return
+            }
+
+            val sampleSize = calculateInSampleSize(bitmapOptions, maxImageWidth, maxImageHeight)
+            val bitmap = getBitmapForStream(inputStream, sampleSize)
+            inputStream.close()
+
+            if (bitmap != null) {
+                callback.invoke(Result.success(bitmap))
+            } else {
+                callback.invoke(
+                    Result.failure(BitmapDecodeException("The image data could not be decoded."))
+                )
+            }
         }
 
         private fun processCameraResult(
@@ -260,8 +309,11 @@ actual class MediaPickerController(
             ) : CallbackData(callback)
         }
 
-        private companion object {
-            const val DEFAULT_FILE_NAME = "image.png"
+        companion object {
+            private const val DEFAULT_FILE_NAME = "image.png"
+
+            internal const val ARG_IMG_MAX_WIDTH = "args_img_max_width"
+            internal const val ARG_IMG_MAX_HEIGHT = "args_img_max_height"
         }
     }
 
