@@ -51,25 +51,28 @@ object BitmapUtils {
         return Bitmap.createScaledBitmap(bitmap, width, height, true)
     }
 
-    fun getBitmapForStream(
-        inputStream: InputStream,
-        maxImageWidth: Int,
-        maxImageHeight: Int
-    ): Bitmap {
-        val bitmapOptions = BitmapFactory.Options().apply {
+    fun getBitmapOptionsFromStream(
+        inputStream: InputStream
+    ): BitmapFactory.Options {
+        return BitmapFactory.Options().apply {
             inJustDecodeBounds = true
+            BitmapFactory.decodeStream(inputStream, null, this)
         }
-        val bitmapBytes = inputStream.readBytes()
-        BitmapFactory.decodeByteArray(bitmapBytes, 0, bitmapBytes.size, bitmapOptions)
-
-        bitmapOptions.apply {
-            inSampleSize = calculateInSampleSize(bitmapOptions, maxImageWidth, maxImageHeight)
-            inJustDecodeBounds = false
-        }
-        return BitmapFactory.decodeByteArray(bitmapBytes, 0, bitmapBytes.size, bitmapOptions)
     }
 
-    private fun calculateInSampleSize(
+    fun getBitmapForStream(
+        inputStream: InputStream,
+        sampleSize: Int
+    ): Bitmap? {
+        val bitmapOptions = BitmapFactory.Options().apply {
+            inJustDecodeBounds = false
+            inSampleSize = sampleSize
+        }
+
+        return BitmapFactory.decodeStream(inputStream, null, bitmapOptions)
+    }
+
+    fun calculateInSampleSize(
         options: BitmapFactory.Options,
         maxWidth: Int,
         maxHeight: Int

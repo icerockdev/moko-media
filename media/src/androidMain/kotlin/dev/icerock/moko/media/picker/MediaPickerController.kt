@@ -20,7 +20,9 @@ import androidx.lifecycle.OnLifecycleEvent
 import com.nbsp.materialfilepicker.ui.FilePickerActivity
 import com.nbsp.materialfilepicker.ui.FilePickerActivity.ARG_CLOSEABLE
 import dev.icerock.moko.media.*
+import dev.icerock.moko.media.BitmapUtils.calculateInSampleSize
 import dev.icerock.moko.media.BitmapUtils.getBitmapForStream
+import dev.icerock.moko.media.BitmapUtils.getBitmapOptionsFromStream
 import dev.icerock.moko.media.picker.MediaPickerController.PickerFragment.Companion.ARG_IMG_MAX_HEIGHT
 import dev.icerock.moko.media.picker.MediaPickerController.PickerFragment.Companion.ARG_IMG_MAX_WIDTH
 import dev.icerock.moko.permissions.Permission
@@ -56,6 +58,11 @@ actual class MediaPickerController(
         return pickImage(source, DEFAULT_MAX_IMAGE_WIDTH, DEFAULT_MAX_IMAGE_HEIGHT)
     }
 
+    /**
+     * A default values for [maxWidth] and [maxHeight] arguments are not used because bug of kotlin
+     * compiler. Default values for suspend functions don't work correctly.
+     * (Look here: https://youtrack.jetbrains.com/issue/KT-37331)
+     */
     actual suspend fun pickImage(source: MediaSource, maxWidth: Int, maxHeight: Int): Bitmap {
         val fragmentManager =
             fragmentManager ?: throw IllegalStateException("can't pick image without active window")
@@ -241,15 +248,32 @@ actual class MediaPickerController(
             }
 
             val contentResolver = requireContext().contentResolver
-            val inputStream = contentResolver.openInputStream(uri)
+            var inputStream = contentResolver.openInputStream(uri)
             if (inputStream == null) {
                 callback.invoke(Result.failure(NoAccessToFileException(uri.toString())))
                 return
             }
-            val bitmap = getBitmapForStream(inputStream, maxImageWidth, maxImageHeight)
+
+            val bitmapOptions = getBitmapOptionsFromStream(inputStream)
             inputStream.close()
 
-            callback.invoke(Result.success(bitmap))
+            inputStream = contentResolver.openInputStream(uri)
+            if (inputStream == null) {
+                callback.invoke(Result.failure(NoAccessToFileException(uri.toString())))
+                return
+            }
+
+            val sampleSize = calculateInSampleSize(bitmapOptions, maxImageWidth, maxImageHeight)
+            val bitmap = getBitmapForStream(inputStream, sampleSize)
+            inputStream.close()
+
+            if (bitmap != null) {
+                callback.invoke(Result.success(bitmap))
+            } else {
+                callback.invoke(
+                    Result.failure(BitmapDecodeException("The image data could not be decoded."))
+                )
+            }
         }
 
         private fun processCameraResult(
