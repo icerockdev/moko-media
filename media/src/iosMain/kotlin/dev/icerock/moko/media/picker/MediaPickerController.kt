@@ -47,6 +47,10 @@ actual class MediaPickerController(
     )
 
     actual suspend fun pickImage(source: MediaSource): Bitmap {
+        return pickImage(source, DEFAULT_MAX_IMAGE_WIDTH, DEFAULT_MAX_IMAGE_HEIGHT)
+    }
+
+    actual suspend fun pickImage(source: MediaSource, maxWidth: Int, maxHeight: Int): Bitmap {
         source.requiredPermissions().forEach { permission ->
             permissionsController.providePermission(permission)
         }
