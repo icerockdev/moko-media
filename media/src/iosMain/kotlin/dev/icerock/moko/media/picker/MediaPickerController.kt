@@ -33,6 +33,7 @@ import platform.UIKit.UIViewController
 import platform.darwin.NSObject
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.suspendCoroutine
+import kotlin.random.Random
 
 actual class MediaPickerController(
     val permissionsController: PermissionsController,
@@ -130,14 +131,14 @@ actual class MediaPickerController(
                 )
                 continuation.resumeWith(Result.success(media))
             } else {
-                if (image == null || mediaUrl == null) {
+                if (image == null) {
                     continuation.resumeWith(Result.failure(NoAccessToFileException("info: $info"))) // TODO write some info
                     return
                 }
 
                 val media = Media(
-                    name = mediaUrl.relativeString,
-                    path = mediaUrl.path.orEmpty(),
+                    name = mediaUrl?.relativeString ?: Random.nextLong().toString(),
+                    path = mediaUrl?.path.orEmpty(),
                     preview = Bitmap(image),
                     type = type
                 )
