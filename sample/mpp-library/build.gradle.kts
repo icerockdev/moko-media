@@ -1,30 +1,22 @@
+/*
+ * Copyright 2019 IceRock MAG Inc. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 plugins {
-    id("com.android.library")
-    id("org.jetbrains.kotlin.multiplatform")
-    id("dev.icerock.mobile.multiplatform")
+    plugin(Deps.Plugins.androidLibrary)
+    plugin(Deps.Plugins.kotlinMultiplatform)
+    plugin(Deps.Plugins.mobileMultiplatform)
+    plugin(Deps.Plugins.iosFramework)
 }
-
-android {
-    compileSdkVersion(Versions.Android.compileSdk)
-
-    defaultConfig {
-        minSdkVersion(Versions.Android.minSdk)
-        targetSdkVersion(Versions.Android.targetSdk)
-    }
-}
-
-val libs = listOf(
-    Deps.Libs.MultiPlatform.mokoMedia,
-    Deps.Libs.MultiPlatform.mokoPermissions
-)
-
-setupFramework(
-    exports = libs
-)
 
 dependencies {
-    mppLibrary(Deps.Libs.MultiPlatform.kotlinStdLib)
-    mppLibrary(Deps.Libs.MultiPlatform.coroutines)
+    commonMainImplementation(Deps.Libs.MultiPlatform.coroutines)
 
-    libs.forEach { mppLibrary(it) }
+    commonMainApi(Deps.Libs.MultiPlatform.mokoPermissions.common)
+    commonMainApi(Deps.Libs.MultiPlatform.mokoMedia)
+}
+
+framework {
+    export(project(":media"))
+    export(Deps.Libs.MultiPlatform.mokoPermissions)
 }
