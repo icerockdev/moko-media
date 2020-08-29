@@ -15,13 +15,6 @@ allprojects {
         maven { url = uri("http://dl.bintray.com/lukaville/maven") }
     }
 
-    configurations.all {
-        resolutionStrategy.dependencySubstitution {
-            substitute(module(Deps.Libs.MultiPlatform.mokoMedia))
-                .with(project(":media"))
-        }
-    }
-
     plugins.withId(Deps.Plugins.androidLibrary.id) {
         configure<com.android.build.gradle.LibraryExtension> {
             compileSdkVersion(Deps.Android.compileSdk)
