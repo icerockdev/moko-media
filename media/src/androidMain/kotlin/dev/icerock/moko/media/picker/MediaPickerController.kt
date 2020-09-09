@@ -19,10 +19,14 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.OnLifecycleEvent
 import com.nbsp.materialfilepicker.ui.FilePickerActivity
 import com.nbsp.materialfilepicker.ui.FilePickerActivity.ARG_CLOSEABLE
-import dev.icerock.moko.media.*
+import dev.icerock.moko.media.Bitmap
+import dev.icerock.moko.media.BitmapUtils
 import dev.icerock.moko.media.BitmapUtils.calculateInSampleSize
 import dev.icerock.moko.media.BitmapUtils.getBitmapForStream
 import dev.icerock.moko.media.BitmapUtils.getBitmapOptionsFromStream
+import dev.icerock.moko.media.FileMedia
+import dev.icerock.moko.media.Media
+import dev.icerock.moko.media.MediaFactory
 import dev.icerock.moko.media.picker.MediaPickerController.PickerFragment.Companion.ARG_IMG_MAX_HEIGHT
 import dev.icerock.moko.media.picker.MediaPickerController.PickerFragment.Companion.ARG_IMG_MAX_WIDTH
 import dev.icerock.moko.permissions.Permission
@@ -328,10 +332,7 @@ actual class MediaPickerController(
         fun pickVideo(callback: (Result<Media>) -> Unit) {
             val requestCode = codeCallbackMap.keys.sorted().lastOrNull() ?: 0
 
-            codeCallbackMap[requestCode] =
-                CallbackData(
-                    callback
-                )
+            codeCallbackMap[requestCode] = CallbackData(callback)
 
             val intent = Intent().apply {
                 type = "video/*"
@@ -344,10 +345,7 @@ actual class MediaPickerController(
         fun pickMedia(callback: (Result<Media>) -> Unit) {
             val requestCode = codeCallbackMap.keys.sorted().lastOrNull() ?: 0
 
-            codeCallbackMap[requestCode] =
-                CallbackData(
-                    callback
-                )
+            codeCallbackMap[requestCode] = CallbackData(callback)
 
             val intent = Intent().apply {
                 type = "image/* video/*"
@@ -375,20 +373,25 @@ actual class MediaPickerController(
 
         private fun processResult(
             callback: (Result<Media>) -> Unit,
-            data: Intent?
+            intent: Intent?
         ) {
             val context = this.context
             if (context == null) {
                 callback(Result.failure(IllegalStateException("context unavailable")))
                 return
             }
-            if (data == null) {
-                callback(Result.failure(IllegalStateException("data unavailable")))
+            if (intent == null) {
+                callback(Result.failure(IllegalStateException("intent unavailable")))
+                return
+            }
+            val intentData = intent.data
+            if (intentData == null) {
+                callback(Result.failure(IllegalStateException("intentData unavailable")))
                 return
             }
 
             val result = kotlin.runCatching {
-                MediaFactory.create(context, data.data)
+                MediaFactory.create(context, intentData)
             }
             callback.invoke(result)
         }
@@ -406,10 +409,7 @@ actual class MediaPickerController(
         fun pickFile(callback: (Result<FileMedia>) -> Unit) {
             val requestCode = codeCallbackMap.keys.sorted().lastOrNull() ?: 0
 
-            codeCallbackMap[requestCode] =
-                CallbackData(
-                    callback
-                )
+            codeCallbackMap[requestCode] = CallbackData(callback)
 
             // TODO нужно убрать использование внешней зависимости, сделать конфигурацию способа
             //  выбора файла из вне (аргументом в контроллер передавать)

@@ -4,4 +4,4 @@
 
 package dev.icerock.moko.media.picker
 
-class CanceledException : Throwable()
+class CanceledException : Exception()

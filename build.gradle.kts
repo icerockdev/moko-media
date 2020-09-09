@@ -4,8 +4,6 @@
 
 allprojects {
     repositories {
-        mavenLocal()
-
         google()
         jcenter()
 
@@ -15,14 +13,14 @@ allprojects {
         maven { url = uri("http://dl.bintray.com/lukaville/maven") }
     }
 
-    // Workaround for https://youtrack.jetbrains.com/issue/KT-36721.
-    pluginManager.withPlugin("kotlin-multiplatform") {
-        val kotlinExtension = project.extensions.getByName("kotlin")
-                as org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
-        val uniqueName = "${project.group}.${project.name}"
+    plugins.withId(Deps.Plugins.androidLibrary.id) {
+        configure<com.android.build.gradle.LibraryExtension> {
+            compileSdkVersion(Deps.Android.compileSdk)
 
-        kotlinExtension.targets.withType(org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget::class.java) {
-            compilations["main"].kotlinOptions.freeCompilerArgs += listOf("-module-name", uniqueName)
+            defaultConfig {
+                minSdkVersion(Deps.Android.minSdk)
+                targetSdkVersion(Deps.Android.targetSdk)
+            }
         }
     }
 }
