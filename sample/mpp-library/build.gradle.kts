@@ -10,10 +10,18 @@ plugins {
 }
 
 dependencies {
-    commonMainImplementation(Deps.Libs.MultiPlatform.coroutines)
+    commonMainApi(Deps.Libs.MultiPlatform.coroutines)
 
     commonMainApi(Deps.Libs.MultiPlatform.mokoPermissions.common)
+    commonMainApi(Deps.Libs.MultiPlatform.mokoMvvm)
     commonMainApi(Deps.Libs.MultiPlatform.mokoMedia)
+
+    androidMainImplementation(Deps.Libs.Android.lifecycle)
+
+    // temporary fix of https://youtrack.jetbrains.com/issue/KT-41083
+    commonMainImplementation("dev.icerock.moko:resources:0.13.0")
+    commonMainImplementation("dev.icerock.moko:parcelize:0.4.0")
+    commonMainImplementation("dev.icerock.moko:graphics:0.4.0")
 }
 
 framework {

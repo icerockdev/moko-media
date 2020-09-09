@@ -6,7 +6,7 @@ plugins {
 android {
     compileSdkVersion(Deps.Android.compileSdk)
 
-    buildFeatures.dataBinding = true
+    buildFeatures.viewBinding = true
 
     dexOptions {
         javaMaxHeapSize = "2g"
