@@ -1,40 +1,65 @@
+/*
+ * Copyright 2019 IceRock MAG Inc. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 object Deps {
+    private const val kotlinVersion = "1.4.0"
+
+    private const val androidAppCompatVersion = "1.1.0"
+    private const val materialDesignVersion = "1.0.0"
+    private const val androidLifecycleVersion = "2.1.0"
+    private const val androidCoreTestingVersion = "2.1.0"
+    private const val androidExifInterface = "1.0.0"
+    private const val androidMediaFilePicker = "1.8"
+
+    private const val coroutinesVersion = "1.3.9"
+    private const val mokoMvvmVersion = "0.8.0"
+    private const val mokoPermissionsVersion = "0.6.0"
+    const val mokoMediaVersion = "0.5.0"
+
+    object Android {
+        const val compileSdk = 28
+        const val targetSdk = 28
+        const val minSdk = 16
+    }
+
+    object Plugins {
+        val androidApplication = GradlePlugin(id = "com.android.application")
+        val androidLibrary = GradlePlugin(id = "com.android.library")
+        val kotlinMultiplatform = GradlePlugin(id = "org.jetbrains.kotlin.multiplatform")
+        val kotlinAndroid = GradlePlugin(id = "kotlin-android")
+        val mavenPublish = GradlePlugin(id = "org.gradle.maven-publish")
+
+        val mobileMultiplatform = GradlePlugin(id = "dev.icerock.mobile.multiplatform")
+        val iosFramework = GradlePlugin(id = "dev.icerock.mobile.multiplatform.ios-framework")
+    }
+
     object Libs {
         object Android {
-            val kotlinStdLib = AndroidLibrary(
-                name = "org.jetbrains.kotlin:kotlin-stdlib:${Versions.kotlin}"
-            )
-            val appCompat = AndroidLibrary(
-                name = "androidx.appcompat:appcompat:${Versions.Libs.Android.appCompat}"
-            )
-            val exifInterface = AndroidLibrary(
-                name = "androidx.exifinterface:exifinterface:${Versions.Libs.Android.exifInterface}"
-            )
-            val mediaFilePicker = AndroidLibrary(
-                name = "com.nbsp:library:${Versions.Libs.Android.mediaFilePicker}"
-            )
+            const val appCompat = "androidx.appcompat:appcompat:$androidAppCompatVersion"
+            const val material = "com.google.android.material:material:$materialDesignVersion"
+            const val lifecycle = "androidx.lifecycle:lifecycle-extensions:$androidLifecycleVersion"
+            const val exifInterface = "androidx.exifinterface:exifinterface:$androidExifInterface"
+            const val mediaFilePicker = "com.nbsp:library:$androidMediaFilePicker"
         }
 
         object MultiPlatform {
-            val kotlinStdLib = MultiPlatformLibrary(
-                android = Android.kotlinStdLib.name,
-                common = "org.jetbrains.kotlin:kotlin-stdlib-common:${Versions.kotlin}"
-            )
-            val coroutines = MultiPlatformLibrary(
-                android = "org.jetbrains.kotlinx:kotlinx-coroutines-android:${Versions.Libs.MultiPlatform.coroutines}",
-                common = "org.jetbrains.kotlinx:kotlinx-coroutines-core-common:${Versions.Libs.MultiPlatform.coroutines}",
-                ios = "org.jetbrains.kotlinx:kotlinx-coroutines-core-native:${Versions.Libs.MultiPlatform.coroutines}"
-            )
+            const val coroutines =
+                "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion"
             val mokoPermissions = MultiPlatformLibrary(
-                common = "dev.icerock.moko:permissions:${Versions.Libs.MultiPlatform.mokoPermissions}",
-                iosX64 = "dev.icerock.moko:permissions-iosx64:${Versions.Libs.MultiPlatform.mokoPermissions}",
-                iosArm64 = "dev.icerock.moko:permissions-iosarm64:${Versions.Libs.MultiPlatform.mokoPermissions}"
+                common = "dev.icerock.moko:permissions:$mokoPermissionsVersion",
+                iosX64 = "dev.icerock.moko:permissions-iosx64:$mokoPermissionsVersion",
+                iosArm64 = "dev.icerock.moko:permissions-iosarm64:$mokoPermissionsVersion"
             )
-            val mokoMedia = MultiPlatformLibrary(
-                common = "dev.icerock.moko:media:${Versions.Libs.MultiPlatform.mokoMedia}",
-                iosX64 = "dev.icerock.moko:media-iosx64:${Versions.Libs.MultiPlatform.mokoMedia}",
-                iosArm64 = "dev.icerock.moko:media-iosarm64:${Versions.Libs.MultiPlatform.mokoMedia}"
-            )
+            const val mokoMvvm = "dev.icerock.moko:mvvm:$mokoMvvmVersion"
+            const val mokoMedia = "dev.icerock.moko:media:$mokoMediaVersion"
+        }
+
+        object Tests {
+            const val kotlinTestJUnit =
+                "org.jetbrains.kotlin:kotlin-test-junit:$kotlinVersion"
+            const val androidCoreTesting =
+                "androidx.arch.core:core-testing:$androidCoreTestingVersion"
         }
     }
 }

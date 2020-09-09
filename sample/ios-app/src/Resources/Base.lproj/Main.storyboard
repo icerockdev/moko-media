@@ -1,11 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="14490.70" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES" initialViewController="zIh-nI-gcX">
-    <device id="retina4_0" orientation="portrait">
-        <adaptation id="fullscreen"/>
-    </device>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="16097.3" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES" initialViewController="zIh-nI-gcX">
+    <device id="retina4_0" orientation="portrait" appearance="light"/>
     <dependencies>
-        <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="14490.49"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="16087"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <scenes>
@@ -14,7 +11,7 @@
             <objects>
                 <navigationController id="zIh-nI-gcX" sceneMemberID="viewController">
                     <navigationBar key="navigationBar" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" id="aGe-Yj-KQZ">
-                        <rect key="frame" x="0.0" y="20" width="320" height="44"/>
+                        <rect key="frame" x="0.0" y="0.0" width="320" height="44"/>
                         <autoresizingMask key="autoresizingMask"/>
                     </navigationBar>
                     <connections>
@@ -28,7 +25,7 @@
         <!--Test-->
         <scene sceneID="B5V-K5-FDE">
             <objects>
-                <viewController id="TTy-86-aNs" customClass="TestViewController" customModule="mokoSampleCore" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController id="TTy-86-aNs" customClass="TestViewController" customModule="mokoSampleMedia" customModuleProvider="target" sceneMemberID="viewController">
                     <layoutGuides>
                         <viewControllerLayoutGuide type="top" id="gcA-zH-akF"/>
                         <viewControllerLayoutGuide type="bottom" id="gTY-6T-yQv"/>
@@ -36,9 +33,43 @@
                     <view key="view" contentMode="scaleToFill" id="KxK-oh-5KO">
                         <rect key="frame" x="0.0" y="0.0" width="320" height="568"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                        <subviews>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Ckd-4f-3KG">
+                                <rect key="frame" x="16" y="538" width="288" height="30"/>
+                                <state key="normal" title="Button"/>
+                                <connections>
+                                    <action selector="onSelectImagePressed" destination="TTy-86-aNs" eventType="touchUpInside" id="c6M-fe-Hc2"/>
+                                </connections>
+                            </button>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Q4Z-14-1SN">
+                                <rect key="frame" x="16" y="509" width="288" height="21"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <nil key="textColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="YOK-1P-2r9">
+                                <rect key="frame" x="16" y="44" width="288" height="465"/>
+                            </imageView>
+                        </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                        <constraints>
+                            <constraint firstItem="gTY-6T-yQv" firstAttribute="top" secondItem="Ckd-4f-3KG" secondAttribute="bottom" id="8pt-L2-Stc"/>
+                            <constraint firstItem="Q4Z-14-1SN" firstAttribute="leading" secondItem="KxK-oh-5KO" secondAttribute="leadingMargin" id="Ik0-MO-qmh"/>
+                            <constraint firstAttribute="trailingMargin" secondItem="Q4Z-14-1SN" secondAttribute="trailing" id="KjU-NQ-lhg"/>
+                            <constraint firstItem="YOK-1P-2r9" firstAttribute="top" secondItem="gcA-zH-akF" secondAttribute="bottom" id="SyU-Es-1nK"/>
+                            <constraint firstAttribute="trailingMargin" secondItem="YOK-1P-2r9" secondAttribute="trailing" id="dVF-M8-ev7"/>
+                            <constraint firstItem="YOK-1P-2r9" firstAttribute="leading" secondItem="KxK-oh-5KO" secondAttribute="leadingMargin" id="lEg-Lo-ML8"/>
+                            <constraint firstItem="Ckd-4f-3KG" firstAttribute="top" secondItem="Q4Z-14-1SN" secondAttribute="bottom" constant="8" id="mkA-Rh-MSn"/>
+                            <constraint firstItem="Q4Z-14-1SN" firstAttribute="top" secondItem="YOK-1P-2r9" secondAttribute="bottom" id="rXQ-gB-zBJ"/>
+                            <constraint firstItem="Ckd-4f-3KG" firstAttribute="leading" secondItem="KxK-oh-5KO" secondAttribute="leadingMargin" id="xsW-jh-PpP"/>
+                            <constraint firstAttribute="trailingMargin" secondItem="Ckd-4f-3KG" secondAttribute="trailing" id="ySE-ZJ-dob"/>
+                        </constraints>
                     </view>
                     <navigationItem key="navigationItem" title="Test" id="0jM-60-fjM"/>
+                    <connections>
+                        <outlet property="imageView" destination="YOK-1P-2r9" id="g0A-4V-6YW"/>
+                        <outlet property="label" destination="Q4Z-14-1SN" id="YGn-TT-CbA"/>
+                    </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="Jxh-nl-GiI" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
