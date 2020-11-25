@@ -35,6 +35,7 @@ TODO
   - 0.4.3
 - kotlin 1.4.0
   - 0.5.0
+  - 0.6.0
 
 ## Installation
 root build.gradle  
@@ -49,7 +50,7 @@ allprojects {
 project build.gradle
 ```groovy
 dependencies {
-    commonMainApi("dev.icerock.moko:media:0.5.0")
+    commonMainApi("dev.icerock.moko:media:0.6.0")
 }
 ```
 
