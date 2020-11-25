@@ -21,10 +21,11 @@ class ImageSelectionViewModel(
     fun onSelectImagePressed() {
         viewModelScope.launch {
             try {
-                val image = mediaPickerController.pickImage(MediaSource.GALLERY)
+                val image = mediaPickerController.pickImage(MediaSource.CAMERA)
                 _selectedImage.value = image
                 _textState.value = "image selected"
             } catch (exc: Exception) {
+                exc.printStackTrace()
                 _selectedImage.value = null
                 _textState.value = exc.toString()
             }

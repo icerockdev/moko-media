@@ -11,6 +11,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
+import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.Lifecycle
@@ -170,12 +171,19 @@ actual class MediaPickerController(
         private var maxImageWidth = DEFAULT_MAX_IMAGE_WIDTH
         private var maxImageHeight = DEFAULT_MAX_IMAGE_HEIGHT
 
+        private var photoFilePath: String? = null
+
         override fun onActivityCreated(savedInstanceState: Bundle?) {
             super.onActivityCreated(savedInstanceState)
             maxImageWidth = arguments?.getInt(ARG_IMG_MAX_WIDTH, DEFAULT_MAX_IMAGE_WIDTH)
                 ?: DEFAULT_MAX_IMAGE_WIDTH
             maxImageHeight = arguments?.getInt(ARG_IMG_MAX_HEIGHT, DEFAULT_MAX_IMAGE_HEIGHT)
                 ?: DEFAULT_MAX_IMAGE_HEIGHT
+            photoFilePath = savedInstanceState?.getString(PHOTO_FILE_PATH_KEY)
+        }
+
+        override fun onSaveInstanceState(outState: Bundle) {
+            outState.putString(PHOTO_FILE_PATH_KEY, photoFilePath)
         }
 
         fun pickGalleryImage(callback: (Result<android.graphics.Bitmap>) -> Unit) {
@@ -211,12 +219,13 @@ actual class MediaPickerController(
         private fun createPhotoUri(): Uri {
             val context = requireContext()
             val filesDir = context.getExternalFilesDir(Environment.DIRECTORY_PICTURES)
-            return Uri.fromFile(
-                File(
-                    filesDir,
-                    DEFAULT_FILE_NAME
-                )
+            val tmpFile = File(
+                filesDir,
+                DEFAULT_FILE_NAME
             )
+            photoFilePath = tmpFile.absolutePath
+
+            return FileProvider.getUriForFile(context, context.applicationContext.packageName + FILE_PROVIDER_SUFFIX, tmpFile)
         }
 
         override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -290,7 +299,7 @@ actual class MediaPickerController(
                 callback.invoke(Result.failure(NoAccessToFileException(outputUri.toString())))
                 return
             }
-            val bitmap = decodeImage(outputUri.path.orEmpty(), inputStream)
+            val bitmap = decodeImage(photoFilePath.orEmpty(), inputStream)
             callback.invoke(Result.success(bitmap))
         }
 
@@ -315,6 +324,8 @@ actual class MediaPickerController(
 
         companion object {
             private const val DEFAULT_FILE_NAME = "image.png"
+            private const val PHOTO_FILE_PATH_KEY = "photoFilePath"
+            private const val FILE_PROVIDER_SUFFIX = ".moko.media.provider"
 
             internal const val ARG_IMG_MAX_WIDTH = "args_img_max_width"
             internal const val ARG_IMG_MAX_HEIGHT = "args_img_max_height"
