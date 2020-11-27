@@ -43,6 +43,7 @@ root build.gradle
 allprojects {
     repositories {
         maven { url = "https://dl.bintray.com/icerockdev/moko" }
+        maven { url = "http://dl.bintray.com/lukaville/maven" }
     }
 }
 ```
