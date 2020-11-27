@@ -59,7 +59,7 @@ dependencies {
 TODO
 
 ```kotlin
-class ViewModel(val mediaController: MediaController): ViewModel() {
+class ViewModel(val mediaController: MediaPickerController): ViewModel() {
     fun onSelectPhotoPressed() {
         launch {
             try {
@@ -78,7 +78,7 @@ android:
 ```kotlin
 val viewModel = getViewModel {
     val permissionsController = PermissionsController()
-    val mediaController = MediaController(permissionsController)
+    val mediaController = MediaPickerController(permissionsController)
     ViewModel(mediaController)
 }
 
@@ -87,7 +87,7 @@ viewModel.mediaController.bind(lifecycle, supportFragmentManager) // permissionc
 iOS:
 ```swift
 let permissionsController = PermissionsController()
-let mediaController = MediaController(permissionsController: permissionsController, viewController: self)
+let mediaController = MediaPickerController(permissionsController: permissionsController, viewController: self)
 let viewModel = ViewModel(mediaController: mediaController)
 ```
 
