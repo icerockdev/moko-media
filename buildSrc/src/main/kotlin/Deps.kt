@@ -9,7 +9,7 @@ object Deps {
     private const val materialDesignVersion = "1.0.0"
     private const val androidLifecycleVersion = "2.1.0"
     private const val androidCoreTestingVersion = "2.1.0"
-    private const val androidExifInterface = "1.0.0"
+    private const val androidExifInterface = "1.3.2"
     private const val androidMediaFilePicker = "1.8"
 
     private const val coroutinesVersion = "1.3.9"

@@ -6,7 +6,6 @@ package dev.icerock.moko.media.picker
 
 import android.app.Activity
 import android.content.Intent
-import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
@@ -25,6 +24,7 @@ import dev.icerock.moko.media.BitmapUtils
 import dev.icerock.moko.media.BitmapUtils.calculateInSampleSize
 import dev.icerock.moko.media.BitmapUtils.getBitmapForStream
 import dev.icerock.moko.media.BitmapUtils.getBitmapOptionsFromStream
+import dev.icerock.moko.media.BitmapUtils.getBitmapOrientation
 import dev.icerock.moko.media.FileMedia
 import dev.icerock.moko.media.Media
 import dev.icerock.moko.media.MediaFactory
@@ -131,7 +131,6 @@ actual class MediaPickerController(
         val fragmentManager =
             fragmentManager ?: throw IllegalStateException("can't pick image without active window")
 
-
         permissionsController.providePermission(Permission.STORAGE)
 
         val currentFragment: Fragment? = fragmentManager.findFragmentByTag(filePickerFragmentTag)
@@ -219,13 +218,14 @@ actual class MediaPickerController(
         private fun createPhotoUri(): Uri {
             val context = requireContext()
             val filesDir = context.getExternalFilesDir(Environment.DIRECTORY_PICTURES)
-            val tmpFile = File(
-                filesDir,
-                DEFAULT_FILE_NAME
-            )
+            val tmpFile = File(filesDir, DEFAULT_FILE_NAME)
             photoFilePath = tmpFile.absolutePath
 
-            return FileProvider.getUriForFile(context, context.applicationContext.packageName + FILE_PROVIDER_SUFFIX, tmpFile)
+            return FileProvider.getUriForFile(
+                context,
+                context.applicationContext.packageName + FILE_PROVIDER_SUFFIX,
+                tmpFile
+            )
         }
 
         override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -243,13 +243,11 @@ actual class MediaPickerController(
 
             when (callbackData) {
                 is CallbackData.Gallery -> processGalleryResult(callback, data)
-                is CallbackData.Camera -> processCameraResult(
-                    callback,
-                    callbackData.outputUri
-                )
+                is CallbackData.Camera -> processCameraResult(callback, callbackData.outputUri)
             }
         }
 
+        // TODO: rotate photo
         private fun processGalleryResult(
             callback: (Result<android.graphics.Bitmap>) -> Unit,
             data: Intent?
@@ -261,55 +259,62 @@ actual class MediaPickerController(
             }
 
             val contentResolver = requireContext().contentResolver
-            var inputStream = contentResolver.openInputStream(uri)
-            if (inputStream == null) {
+
+            val bitmapOptions = contentResolver.openInputStream(uri)?.use {
+                getBitmapOptionsFromStream(it)
+            } ?: run {
                 callback.invoke(Result.failure(NoAccessToFileException(uri.toString())))
                 return
             }
 
-            val bitmapOptions = getBitmapOptionsFromStream(inputStream)
-            inputStream.close()
+            val orientation = contentResolver.openInputStream(uri)?.use {
+                getBitmapOrientation(it)
+            } ?: run {
+                callback.invoke(Result.failure(NoAccessToFileException(uri.toString())))
+                return
+            }
 
-            inputStream = contentResolver.openInputStream(uri)
-            if (inputStream == null) {
+            val inputStream = contentResolver.openInputStream(uri) ?: run {
                 callback.invoke(Result.failure(NoAccessToFileException(uri.toString())))
                 return
             }
 
             val sampleSize = calculateInSampleSize(bitmapOptions, maxImageWidth, maxImageHeight)
-            val bitmap = getBitmapForStream(inputStream, sampleSize)
-            inputStream.close()
-
+            val bitmap = inputStream.use {
+                getBitmapForStream(it, sampleSize)
+            }
             if (bitmap != null) {
                 callback.invoke(Result.success(bitmap))
             } else {
-                callback.invoke(
-                    Result.failure(BitmapDecodeException("The image data could not be decoded."))
-                )
+                callback.invoke(Result.failure(BitmapDecodeException("The image data could not be decoded.")))
             }
         }
 
+        // TODO: add sampling
         private fun processCameraResult(
             callback: (Result<android.graphics.Bitmap>) -> Unit,
             outputUri: Uri
         ) {
             val contentResolver = requireContext().contentResolver
-            val inputStream = contentResolver.openInputStream(outputUri)
+            var inputStream = contentResolver.openInputStream(outputUri)
             if (inputStream == null) {
                 callback.invoke(Result.failure(NoAccessToFileException(outputUri.toString())))
                 return
             }
-            val bitmap = decodeImage(photoFilePath.orEmpty(), inputStream)
-            callback.invoke(Result.success(bitmap))
-        }
 
-        private fun decodeImage(
-            filename: String,
-            inputStream: InputStream
-        ): android.graphics.Bitmap {
-            val bitmap = BitmapFactory.decodeStream(inputStream)
-            val angle = BitmapUtils.getAngle(filename)
-            return BitmapUtils.cloneRotated(bitmap, angle)
+            val orientation = getBitmapOrientation(inputStream)
+            inputStream.close()
+
+            inputStream = contentResolver.openInputStream(outputUri)
+            if (inputStream == null) {
+                callback.invoke(Result.failure(NoAccessToFileException(outputUri.toString())))
+                return
+            }
+
+            val bitmap = BitmapUtils.getNormalizedBitmap(inputStream, orientation)
+            inputStream.close()
+
+            callback.invoke(Result.success(bitmap))
         }
 
         sealed class CallbackData(val callback: (Result<android.graphics.Bitmap>) -> Unit) {
