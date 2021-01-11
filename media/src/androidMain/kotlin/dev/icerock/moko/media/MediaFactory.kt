@@ -51,7 +51,6 @@ object MediaFactory {
         }
     }
 
-    // TODO: add sampling
     private fun createPhotoMedia(
         contentResolver: ContentResolver,
         uri: Uri
@@ -78,7 +77,7 @@ object MediaFactory {
             val title = cursor.getString(titleIndex) ?: uri.lastPathSegment
 
             val normalizedBitmap = contentResolver.openInputStream(uri)?.use {
-                getNormalizedBitmap(it, orientation)
+                getNormalizedBitmap(it, orientation, sampleSize = null)
             } ?: throw IOException("can't open stream")
 
             return Media(

@@ -35,8 +35,19 @@ object BitmapUtils {
     }
 
     @Throws(IOException::class)
-    fun getNormalizedBitmap(bitmapStream: InputStream, orientation: Int): Bitmap {
-        val bitmap = BitmapFactory.decodeStream(bitmapStream)
+    fun getNormalizedBitmap(
+        bitmapStream: InputStream,
+        orientation: Int,
+        sampleSize: Int? = null
+    ): Bitmap {
+        val bitmapOptions = if (sampleSize != null) {
+            BitmapFactory.Options().apply {
+                inJustDecodeBounds = false
+                inSampleSize = sampleSize
+            }
+        } else null
+
+        val bitmap = BitmapFactory.decodeStream(bitmapStream, null, bitmapOptions)
             ?: throw IOException("Can't decode bitmap stream")
 
         val matrix = Matrix()
@@ -95,6 +106,7 @@ object BitmapUtils {
         }
     }
 
+    // TODO: unused
     fun getBitmapForStream(
         inputStream: InputStream,
         sampleSize: Int
@@ -112,7 +124,8 @@ object BitmapUtils {
         maxWidth: Int,
         maxHeight: Int
     ): Int {
-        val (height: Int, width: Int) = options.run { outHeight to outWidth }
+        val height: Int = options.outHeight
+        val width: Int = options.outWidth
         var inSampleSize = 1
 
         if (height > maxHeight || width > maxWidth) {

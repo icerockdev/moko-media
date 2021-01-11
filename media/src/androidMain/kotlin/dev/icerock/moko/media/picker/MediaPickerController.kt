@@ -20,11 +20,10 @@ import androidx.lifecycle.OnLifecycleEvent
 import com.nbsp.materialfilepicker.ui.FilePickerActivity
 import com.nbsp.materialfilepicker.ui.FilePickerActivity.ARG_CLOSEABLE
 import dev.icerock.moko.media.Bitmap
-import dev.icerock.moko.media.BitmapUtils
 import dev.icerock.moko.media.BitmapUtils.calculateInSampleSize
-import dev.icerock.moko.media.BitmapUtils.getBitmapForStream
 import dev.icerock.moko.media.BitmapUtils.getBitmapOptionsFromStream
 import dev.icerock.moko.media.BitmapUtils.getBitmapOrientation
+import dev.icerock.moko.media.BitmapUtils.getNormalizedBitmap
 import dev.icerock.moko.media.FileMedia
 import dev.icerock.moko.media.Media
 import dev.icerock.moko.media.MediaFactory
@@ -33,7 +32,6 @@ import dev.icerock.moko.media.picker.MediaPickerController.PickerFragment.Compan
 import dev.icerock.moko.permissions.Permission
 import dev.icerock.moko.permissions.PermissionsController
 import java.io.File
-import java.io.InputStream
 import kotlin.coroutines.suspendCoroutine
 
 actual class MediaPickerController(
@@ -242,22 +240,24 @@ actual class MediaPickerController(
             }
 
             when (callbackData) {
-                is CallbackData.Gallery -> processGalleryResult(callback, data)
-                is CallbackData.Camera -> processCameraResult(callback, callbackData.outputUri)
+                is CallbackData.Gallery -> {
+                    val uri = data?.data
+                    if (uri != null) {
+                        processResult(callback, uri)
+                    } else {
+                        callback.invoke(Result.failure(IllegalArgumentException(data?.toString())))
+                    }
+                }
+                is CallbackData.Camera -> {
+                    processResult(callback, callbackData.outputUri)
+                }
             }
         }
 
-        // TODO: rotate photo
-        private fun processGalleryResult(
+        private fun processResult(
             callback: (Result<android.graphics.Bitmap>) -> Unit,
-            data: Intent?
+            uri: Uri
         ) {
-            val uri = data?.data
-            if (uri == null) {
-                callback.invoke(Result.failure(IllegalArgumentException(data?.toString())))
-                return
-            }
-
             val contentResolver = requireContext().contentResolver
 
             val bitmapOptions = contentResolver.openInputStream(uri)?.use {
@@ -267,6 +267,8 @@ actual class MediaPickerController(
                 return
             }
 
+            val sampleSize = calculateInSampleSize(bitmapOptions, maxImageWidth, maxImageHeight)
+
             val orientation = contentResolver.openInputStream(uri)?.use {
                 getBitmapOrientation(it)
             } ?: run {
@@ -274,45 +276,12 @@ actual class MediaPickerController(
                 return
             }
 
-            val inputStream = contentResolver.openInputStream(uri) ?: run {
+            val bitmap = contentResolver.openInputStream(uri)?.use {
+                getNormalizedBitmap(it, orientation, sampleSize)
+            } ?: run {
                 callback.invoke(Result.failure(NoAccessToFileException(uri.toString())))
                 return
             }
-
-            val sampleSize = calculateInSampleSize(bitmapOptions, maxImageWidth, maxImageHeight)
-            val bitmap = inputStream.use {
-                getBitmapForStream(it, sampleSize)
-            }
-            if (bitmap != null) {
-                callback.invoke(Result.success(bitmap))
-            } else {
-                callback.invoke(Result.failure(BitmapDecodeException("The image data could not be decoded.")))
-            }
-        }
-
-        // TODO: add sampling
-        private fun processCameraResult(
-            callback: (Result<android.graphics.Bitmap>) -> Unit,
-            outputUri: Uri
-        ) {
-            val contentResolver = requireContext().contentResolver
-            var inputStream = contentResolver.openInputStream(outputUri)
-            if (inputStream == null) {
-                callback.invoke(Result.failure(NoAccessToFileException(outputUri.toString())))
-                return
-            }
-
-            val orientation = getBitmapOrientation(inputStream)
-            inputStream.close()
-
-            inputStream = contentResolver.openInputStream(outputUri)
-            if (inputStream == null) {
-                callback.invoke(Result.failure(NoAccessToFileException(outputUri.toString())))
-                return
-            }
-
-            val bitmap = BitmapUtils.getNormalizedBitmap(inputStream, orientation)
-            inputStream.close()
 
             callback.invoke(Result.success(bitmap))
         }
