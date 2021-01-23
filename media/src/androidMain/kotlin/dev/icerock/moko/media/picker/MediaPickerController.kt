@@ -4,34 +4,17 @@
 
 package dev.icerock.moko.media.picker
 
-import android.app.Activity
-import android.content.Intent
-import android.net.Uri
-import android.os.Bundle
-import android.os.Environment
-import android.provider.MediaStore
-import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.OnLifecycleEvent
-import com.nbsp.materialfilepicker.ui.FilePickerActivity
-import com.nbsp.materialfilepicker.ui.FilePickerActivity.ARG_CLOSEABLE
 import dev.icerock.moko.media.Bitmap
-import dev.icerock.moko.media.BitmapUtils.calculateInSampleSize
-import dev.icerock.moko.media.BitmapUtils.getBitmapOptionsFromStream
-import dev.icerock.moko.media.BitmapUtils.getBitmapOrientation
-import dev.icerock.moko.media.BitmapUtils.getNormalizedBitmap
 import dev.icerock.moko.media.FileMedia
 import dev.icerock.moko.media.Media
-import dev.icerock.moko.media.MediaFactory
-import dev.icerock.moko.media.picker.MediaPickerController.PickerFragment.Companion.ARG_IMG_MAX_HEIGHT
-import dev.icerock.moko.media.picker.MediaPickerController.PickerFragment.Companion.ARG_IMG_MAX_WIDTH
 import dev.icerock.moko.permissions.Permission
 import dev.icerock.moko.permissions.PermissionsController
-import java.io.File
 import kotlin.coroutines.suspendCoroutine
 
 actual class MediaPickerController(
@@ -75,17 +58,13 @@ actual class MediaPickerController(
         }
 
         val currentFragment: Fragment? = fragmentManager.findFragmentByTag(pickerFragmentTag)
-        val pickerFragment: PickerFragment = if (currentFragment != null) {
-            currentFragment as PickerFragment
+        val imagePickerFragment: ImagePickerFragment = if (currentFragment != null) {
+            currentFragment as ImagePickerFragment
         } else {
-            PickerFragment().apply {
-                arguments = Bundle().apply {
-                    putInt(ARG_IMG_MAX_WIDTH, maxWidth)
-                    putInt(ARG_IMG_MAX_HEIGHT, maxHeight)
-                }
+            ImagePickerFragment.newInstance(maxWidth, maxHeight).also {
                 fragmentManager
                     .beginTransaction()
-                    .add(this, pickerFragmentTag)
+                    .add(it, pickerFragmentTag)
                     .commitNow()
             }
         }
@@ -93,8 +72,8 @@ actual class MediaPickerController(
         val bitmap = suspendCoroutine<android.graphics.Bitmap> { continuation ->
             val action: (Result<android.graphics.Bitmap>) -> Unit = { continuation.resumeWith(it) }
             when (source) {
-                MediaSource.GALLERY -> pickerFragment.pickGalleryImage(action)
-                MediaSource.CAMERA -> pickerFragment.pickCameraImage(action)
+                MediaSource.GALLERY -> imagePickerFragment.pickGalleryImage(action)
+                MediaSource.CAMERA -> imagePickerFragment.pickCameraImage(action)
             }
         }
 
@@ -156,281 +135,5 @@ actual class MediaPickerController(
             MediaSource.GALLERY -> listOf(Permission.GALLERY)
             MediaSource.CAMERA -> listOf(Permission.CAMERA)
         }
-    }
-
-    class PickerFragment : Fragment() {
-        init {
-            retainInstance = true
-        }
-
-        private val codeCallbackMap = mutableMapOf<Int, CallbackData>()
-
-        private var maxImageWidth = DEFAULT_MAX_IMAGE_WIDTH
-        private var maxImageHeight = DEFAULT_MAX_IMAGE_HEIGHT
-
-        private var photoFilePath: String? = null
-
-        override fun onActivityCreated(savedInstanceState: Bundle?) {
-            super.onActivityCreated(savedInstanceState)
-            maxImageWidth = arguments?.getInt(ARG_IMG_MAX_WIDTH, DEFAULT_MAX_IMAGE_WIDTH)
-                ?: DEFAULT_MAX_IMAGE_WIDTH
-            maxImageHeight = arguments?.getInt(ARG_IMG_MAX_HEIGHT, DEFAULT_MAX_IMAGE_HEIGHT)
-                ?: DEFAULT_MAX_IMAGE_HEIGHT
-            photoFilePath = savedInstanceState?.getString(PHOTO_FILE_PATH_KEY)
-        }
-
-        override fun onSaveInstanceState(outState: Bundle) {
-            outState.putString(PHOTO_FILE_PATH_KEY, photoFilePath)
-        }
-
-        fun pickGalleryImage(callback: (Result<android.graphics.Bitmap>) -> Unit) {
-            val requestCode = codeCallbackMap.keys.sorted().lastOrNull() ?: 0
-
-            codeCallbackMap[requestCode] =
-                CallbackData.Gallery(
-                    callback
-                )
-
-            val intent = Intent(
-                Intent.ACTION_PICK,
-                MediaStore.Images.Media.EXTERNAL_CONTENT_URI
-            )
-            startActivityForResult(intent, requestCode)
-        }
-
-        fun pickCameraImage(callback: (Result<android.graphics.Bitmap>) -> Unit) {
-            val requestCode = codeCallbackMap.keys.sorted().lastOrNull() ?: 0
-
-            val outputUri = createPhotoUri()
-            codeCallbackMap[requestCode] =
-                CallbackData.Camera(
-                    callback,
-                    outputUri
-                )
-
-            val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-                .putExtra(MediaStore.EXTRA_OUTPUT, outputUri)
-            startActivityForResult(intent, requestCode)
-        }
-
-        private fun createPhotoUri(): Uri {
-            val context = requireContext()
-            val filesDir = context.getExternalFilesDir(Environment.DIRECTORY_PICTURES)
-            val tmpFile = File(filesDir, DEFAULT_FILE_NAME)
-            photoFilePath = tmpFile.absolutePath
-
-            return FileProvider.getUriForFile(
-                context,
-                context.applicationContext.packageName + FILE_PROVIDER_SUFFIX,
-                tmpFile
-            )
-        }
-
-        override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-            super.onActivityResult(requestCode, resultCode, data)
-
-            val callbackData = codeCallbackMap[requestCode] ?: return
-            codeCallbackMap.remove(requestCode)
-
-            val callback = callbackData.callback
-
-            if (resultCode == Activity.RESULT_CANCELED) {
-                callback.invoke(Result.failure(CanceledException()))
-                return
-            }
-
-            when (callbackData) {
-                is CallbackData.Gallery -> {
-                    val uri = data?.data
-                    if (uri != null) {
-                        processResult(callback, uri)
-                    } else {
-                        callback.invoke(Result.failure(IllegalArgumentException(data?.toString())))
-                    }
-                }
-                is CallbackData.Camera -> {
-                    processResult(callback, callbackData.outputUri)
-                }
-            }
-        }
-
-        private fun processResult(
-            callback: (Result<android.graphics.Bitmap>) -> Unit,
-            uri: Uri
-        ) {
-            val contentResolver = requireContext().contentResolver
-
-            val bitmapOptions = contentResolver.openInputStream(uri)?.use {
-                getBitmapOptionsFromStream(it)
-            } ?: run {
-                callback.invoke(Result.failure(NoAccessToFileException(uri.toString())))
-                return
-            }
-
-            val sampleSize = calculateInSampleSize(bitmapOptions, maxImageWidth, maxImageHeight)
-
-            val orientation = contentResolver.openInputStream(uri)?.use {
-                getBitmapOrientation(it)
-            } ?: run {
-                callback.invoke(Result.failure(NoAccessToFileException(uri.toString())))
-                return
-            }
-
-            val bitmap = contentResolver.openInputStream(uri)?.use {
-                getNormalizedBitmap(it, orientation, sampleSize)
-            } ?: run {
-                callback.invoke(Result.failure(NoAccessToFileException(uri.toString())))
-                return
-            }
-
-            callback.invoke(Result.success(bitmap))
-        }
-
-        sealed class CallbackData(val callback: (Result<android.graphics.Bitmap>) -> Unit) {
-            class Gallery(callback: (Result<android.graphics.Bitmap>) -> Unit) :
-                CallbackData(callback)
-
-            class Camera(
-                callback: (Result<android.graphics.Bitmap>) -> Unit,
-                val outputUri: Uri
-            ) : CallbackData(callback)
-        }
-
-        companion object {
-            private const val DEFAULT_FILE_NAME = "image.png"
-            private const val PHOTO_FILE_PATH_KEY = "photoFilePath"
-            private const val FILE_PROVIDER_SUFFIX = ".moko.media.provider"
-
-            internal const val ARG_IMG_MAX_WIDTH = "args_img_max_width"
-            internal const val ARG_IMG_MAX_HEIGHT = "args_img_max_height"
-        }
-    }
-
-    class MediaPickerFragment : Fragment() {
-
-        private val codeCallbackMap = mutableMapOf<Int, CallbackData>()
-
-        init {
-            retainInstance = true
-        }
-
-        fun pickVideo(callback: (Result<Media>) -> Unit) {
-            val requestCode = codeCallbackMap.keys.sorted().lastOrNull() ?: 0
-
-            codeCallbackMap[requestCode] = CallbackData(callback)
-
-            val intent = Intent().apply {
-                type = "video/*"
-                action = Intent.ACTION_GET_CONTENT
-            }
-
-            startActivityForResult(intent, requestCode)
-        }
-
-        fun pickMedia(callback: (Result<Media>) -> Unit) {
-            val requestCode = codeCallbackMap.keys.sorted().lastOrNull() ?: 0
-
-            codeCallbackMap[requestCode] = CallbackData(callback)
-
-            val intent = Intent().apply {
-                type = "image/* video/*"
-                action = Intent.ACTION_GET_CONTENT
-                putExtra(Intent.EXTRA_MIME_TYPES, arrayOf("video/*", "image/*"))
-            }
-            startActivityForResult(intent, requestCode)
-        }
-
-        override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-            super.onActivityResult(requestCode, resultCode, data)
-
-            val callbackData = codeCallbackMap[requestCode] ?: return
-            codeCallbackMap.remove(requestCode)
-
-            val callback = callbackData.callback
-
-            if (resultCode == Activity.RESULT_CANCELED) {
-                callback.invoke(Result.failure(CanceledException()))
-                return
-            }
-
-            processResult(callback, data)
-        }
-
-        private fun processResult(
-            callback: (Result<Media>) -> Unit,
-            intent: Intent?
-        ) {
-            val context = this.context
-            if (context == null) {
-                callback(Result.failure(IllegalStateException("context unavailable")))
-                return
-            }
-            if (intent == null) {
-                callback(Result.failure(IllegalStateException("intent unavailable")))
-                return
-            }
-            val intentData = intent.data
-            if (intentData == null) {
-                callback(Result.failure(IllegalStateException("intentData unavailable")))
-                return
-            }
-
-            val result = kotlin.runCatching {
-                MediaFactory.create(context, intentData)
-            }
-            callback.invoke(result)
-        }
-
-        class CallbackData(val callback: (Result<Media>) -> Unit)
-    }
-
-    class FilePickerFragment : Fragment() {
-        init {
-            retainInstance = true
-        }
-
-        private val codeCallbackMap = mutableMapOf<Int, CallbackData>()
-
-        fun pickFile(callback: (Result<FileMedia>) -> Unit) {
-            val requestCode = codeCallbackMap.keys.sorted().lastOrNull() ?: 0
-
-            codeCallbackMap[requestCode] = CallbackData(callback)
-
-            // TODO нужно убрать использование внешней зависимости, сделать конфигурацию способа
-            //  выбора файла из вне (аргументом в контроллер передавать)
-            val intent = Intent(requireContext(), FilePickerActivity::class.java)
-            intent.putExtra(ARG_CLOSEABLE, true)
-            startActivityForResult(intent, requestCode)
-        }
-
-        override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-            super.onActivityResult(requestCode, resultCode, data)
-
-            val callbackData = codeCallbackMap[requestCode] ?: return
-            codeCallbackMap.remove(requestCode)
-
-            val callback = callbackData.callback
-
-            if (resultCode == Activity.RESULT_CANCELED) {
-                callback.invoke(Result.failure(CanceledException()))
-                return
-            }
-
-            processResult(callback, data)
-        }
-
-        private fun processResult(
-            callback: (Result<FileMedia>) -> Unit,
-            data: Intent?
-        ) {
-            val filePath = data?.getStringExtra(FilePickerActivity.RESULT_FILE_PATH)
-
-            filePath?.let { path ->
-                val name = File(path).name
-                callback(Result.success(FileMedia(name, path)))
-            }
-        }
-
-        class CallbackData(val callback: (Result<FileMedia>) -> Unit)
     }
 }

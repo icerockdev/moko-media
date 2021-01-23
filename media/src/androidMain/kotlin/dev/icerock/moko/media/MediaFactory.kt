@@ -31,11 +31,11 @@ object MediaFactory {
         )
 
         val contentResolver = context.contentResolver
-        val cursor = contentResolver
+        val cursorRef = contentResolver
             .query(uri, projection, null, null, null)
             ?: throw IllegalArgumentException("can't open cursor")
 
-        cursor.use { cursor ->
+        return cursorRef.use { cursor ->
             if (!cursor.moveToFirst()) {
                 throw IllegalStateException()
             }
@@ -43,7 +43,7 @@ object MediaFactory {
             val mimeTypeIndex = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.MIME_TYPE)
             val mimeType = cursor.getString(mimeTypeIndex)
 
-            return when {
+            when {
                 mimeType.startsWith("image") -> createPhotoMedia(contentResolver, uri)
                 mimeType.startsWith("video") -> createVideoMedia(contentResolver, uri)
                 else -> throw IllegalArgumentException("unsupported type $mimeType")
@@ -60,11 +60,11 @@ object MediaFactory {
             MediaStore.Images.ImageColumns.TITLE
         )
 
-        val cursor = contentResolver
+        val cursorRef = contentResolver
             .query(uri, projection, null, null, null)
             ?: throw IllegalArgumentException("can't open cursor")
 
-        cursor.use { cursor ->
+        return cursorRef.use { cursor ->
             if (!cursor.moveToFirst()) {
                 throw IllegalStateException("not found resource")
             }
@@ -80,7 +80,7 @@ object MediaFactory {
                 getNormalizedBitmap(it, orientation, sampleSize = null)
             } ?: throw IOException("can't open stream")
 
-            return Media(
+            Media(
                 name = title,
                 path = uri.toString(),
                 type = MediaType.PHOTO,
@@ -98,11 +98,11 @@ object MediaFactory {
             MediaStore.Video.VideoColumns.TITLE
         )
 
-        val cursor = contentResolver
+        val cursorRef = contentResolver
             .query(uri, projection, null, null, null)
             ?: throw IllegalArgumentException("can't open cursor")
 
-        cursor.use { cursor ->
+        return cursorRef.use { cursor ->
             if (!cursor.moveToFirst()) {
                 throw IllegalStateException()
             }
@@ -131,7 +131,7 @@ object MediaFactory {
                 retriever.getFrameAtTime(0)
             } ?: throw IOException("can't read thumbnail")
 
-            return Media(
+            Media(
                 name = title,
                 path = uri.toString(),
                 type = MediaType.VIDEO,

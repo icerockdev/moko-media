@@ -29,9 +29,7 @@ actual class MediaPlayerController {
         isMediaPlayerReady = true
     }
     private val surfaceViewCallback = object : SurfaceHolder.Callback {
-        override fun surfaceChanged(holder: SurfaceHolder?, p1: Int, p2: Int, p3: Int) {
-
-        }
+        override fun surfaceChanged(holder: SurfaceHolder?, p1: Int, p2: Int, p3: Int) = Unit
 
         override fun surfaceDestroyed(holder: SurfaceHolder?) {
             isSurfaceReady = false
