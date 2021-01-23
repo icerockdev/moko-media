@@ -33,7 +33,11 @@ class TestViewController: UIViewController {
         }
     }
     
-    @IBAction func onSelectImagePressed() {
-        viewModel.onSelectImagePressed()
+    @IBAction func onCameraPressed() {
+        viewModel.onCameraPressed()
+    }
+
+    @IBAction func onGalleryPressed() {
+        viewModel.onGalleryPressed()
     }
 }
