@@ -18,10 +18,18 @@ class ImageSelectionViewModel(
     private val _textState = MutableLiveData(initialValue = "wait actions...")
     val textState: LiveData<String> = _textState.readOnly()
 
-    fun onSelectImagePressed() {
+    fun onCameraPressed() {
+        selectImage(MediaSource.CAMERA)
+    }
+
+    fun onGalleryPressed() {
+        selectImage(MediaSource.GALLERY)
+    }
+
+    private fun selectImage(source: MediaSource) {
         viewModelScope.launch {
             try {
-                val image = mediaPickerController.pickImage(MediaSource.CAMERA)
+                val image = mediaPickerController.pickImage(source)
                 _selectedImage.value = image
                 _textState.value = "image selected"
             } catch (exc: Exception) {

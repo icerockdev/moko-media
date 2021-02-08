@@ -21,8 +21,14 @@
         android:text="TextView" />
 
     <Button
-        android:id="@+id/button"
+        android:id="@+id/camera_button"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Button" />
+        android:text="Camera" />
+
+    <Button
+        android:id="@+id/gallery_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Gallery" />
 </LinearLayout>

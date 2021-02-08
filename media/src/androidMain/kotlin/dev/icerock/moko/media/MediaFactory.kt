@@ -6,31 +6,22 @@ package dev.icerock.moko.media
 
 import android.content.ContentResolver
 import android.content.Context
-import android.graphics.BitmapFactory
-import android.graphics.Matrix
 import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.provider.MediaStore
 import androidx.exifinterface.media.ExifInterface
+import dev.icerock.moko.media.BitmapUtils.getBitmapOrientation
+import dev.icerock.moko.media.BitmapUtils.getNormalizedBitmap
 import java.io.IOException
 
 object MediaFactory {
-    fun create(
-        context: Context,
-        uriString: String,
-        type: MediaType
-    ): Media {
+
+    fun create(context: Context, uriString: String, type: MediaType): Media {
         val contentResolver = context.contentResolver
         val uri: Uri = Uri.parse(uriString)
         return when (type) {
-            MediaType.PHOTO -> createPhotoMedia(
-                contentResolver,
-                uri
-            )
-            MediaType.VIDEO -> createVideoMedia(
-                contentResolver,
-                uri
-            )
+            MediaType.PHOTO -> createPhotoMedia(contentResolver, uri)
+            MediaType.VIDEO -> createVideoMedia(contentResolver, uri)
         }
     }
 
@@ -40,33 +31,23 @@ object MediaFactory {
         )
 
         val contentResolver = context.contentResolver
-        val cursor = contentResolver
+        val cursorRef = contentResolver
             .query(uri, projection, null, null, null)
             ?: throw IllegalArgumentException("can't open cursor")
 
-        try {
-            with(cursor) {
-                if (!moveToFirst()) {
-                    throw IllegalStateException()
-                }
-
-                val mimeType = getColumnIndexOrThrow(MediaStore.MediaColumns.MIME_TYPE)
-                    .let { getString(it) }
-
-                return when {
-                    mimeType.startsWith("image") -> createPhotoMedia(
-                        contentResolver,
-                        uri
-                    )
-                    mimeType.startsWith("video") -> createVideoMedia(
-                        contentResolver,
-                        uri
-                    )
-                    else -> throw IllegalArgumentException("unsupported type $mimeType")
-                }
+        return cursorRef.use { cursor ->
+            if (!cursor.moveToFirst()) {
+                throw IllegalStateException()
             }
-        } finally {
-            cursor.close()
+
+            val mimeTypeIndex = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.MIME_TYPE)
+            val mimeType = cursor.getString(mimeTypeIndex)
+
+            when {
+                mimeType.startsWith("image") -> createPhotoMedia(contentResolver, uri)
+                mimeType.startsWith("video") -> createVideoMedia(contentResolver, uri)
+                else -> throw IllegalArgumentException("unsupported type $mimeType")
+            }
         }
     }
 
@@ -79,48 +60,32 @@ object MediaFactory {
             MediaStore.Images.ImageColumns.TITLE
         )
 
-        val cursor = contentResolver
+        val cursorRef = contentResolver
             .query(uri, projection, null, null, null)
             ?: throw IllegalArgumentException("can't open cursor")
 
-        try {
-            return with(cursor) {
-                if (!moveToFirst()) {
-                    throw IllegalStateException("not found resource")
-                }
-
-                val orientation = contentResolver.openInputStream(uri)?.use {
-                    val exif = ExifInterface(it)
-                    exif.rotationDegrees
-                } ?: 0
-
-                val title =
-                    getColumnIndexOrThrow(MediaStore.Images.ImageColumns.TITLE)
-                        .let { getString(it) } ?: uri.lastPathSegment
-
-                val sourceBitmap = contentResolver.openInputStream(uri)?.use {
-                    BitmapFactory.decodeStream(it)
-                } ?: throw IOException("can't open stream")
-
-                val matrix = Matrix()
-                matrix.postRotate(orientation.toFloat())
-
-                val rotatedBitmap = android.graphics.Bitmap.createBitmap(
-                    sourceBitmap,
-                    0, 0, sourceBitmap.width, sourceBitmap.height,
-                    matrix,
-                    true
-                )
-
-                Media(
-                    name = title,
-                    path = uri.toString(),
-                    type = MediaType.PHOTO,
-                    preview = Bitmap(rotatedBitmap)
-                )
+        return cursorRef.use { cursor ->
+            if (!cursor.moveToFirst()) {
+                throw IllegalStateException("not found resource")
             }
-        } finally {
-            cursor.close()
+
+            val orientation = contentResolver.openInputStream(uri)?.use {
+                getBitmapOrientation(it)
+            } ?: ExifInterface.ORIENTATION_UNDEFINED
+
+            val titleIndex = cursor.getColumnIndexOrThrow(MediaStore.Images.ImageColumns.TITLE)
+            val title = cursor.getString(titleIndex) ?: uri.lastPathSegment
+
+            val normalizedBitmap = contentResolver.openInputStream(uri)?.use {
+                getNormalizedBitmap(it, orientation, sampleSize = null)
+            } ?: throw IOException("can't open stream")
+
+            Media(
+                name = title,
+                path = uri.toString(),
+                type = MediaType.PHOTO,
+                preview = Bitmap(normalizedBitmap)
+            )
         }
     }
 
@@ -133,53 +98,45 @@ object MediaFactory {
             MediaStore.Video.VideoColumns.TITLE
         )
 
-        val cursor = contentResolver
+        val cursorRef = contentResolver
             .query(uri, projection, null, null, null)
             ?: throw IllegalArgumentException("can't open cursor")
 
-        try {
-            return with(cursor) {
-                if (!moveToFirst()) {
-                    throw IllegalStateException()
-                }
-
-                val titleColumn = getColumnIndex(MediaStore.Video.VideoColumns.TITLE)
-                val title = if (titleColumn != -1) {
-                    getString(titleColumn)
-                } else {
-                    null
-                } ?: uri.lastPathSegment ?: "file"
-
-                val idColumn = getColumnIndex(MediaStore.Video.VideoColumns._ID)
-                val thumbnail: android.graphics.Bitmap? = if (idColumn != -1) {
-                    val id = getLong(idColumn)
-                    MediaStore.Video.Thumbnails.getThumbnail(
-                        contentResolver,
-                        id,
-                        MediaStore.Video.Thumbnails.MINI_KIND,
-                        null
-                    )
-                } else {
-                    null
-                } ?: contentResolver.openFileDescriptor(uri, "r")?.use {
-                    val retriver = MediaMetadataRetriever()
-                    retriver.setDataSource(it.fileDescriptor)
-                    retriver.getFrameAtTime(0)
-                }
-
-                if (thumbnail == null) {
-                    throw IOException("can't read thumbnail")
-                }
-
-                Media(
-                    name = title,
-                    path = uri.toString(),
-                    type = MediaType.VIDEO,
-                    preview = Bitmap(thumbnail)
-                )
+        return cursorRef.use { cursor ->
+            if (!cursor.moveToFirst()) {
+                throw IllegalStateException()
             }
-        } finally {
-            cursor.close()
+
+            val titleColumn = cursor.getColumnIndex(MediaStore.Video.VideoColumns.TITLE)
+            val title = if (titleColumn != -1) {
+                cursor.getString(titleColumn)
+            } else {
+                null
+            } ?: uri.lastPathSegment ?: "file"
+
+            val idColumn = cursor.getColumnIndex(MediaStore.Video.VideoColumns._ID)
+            val thumbnail: android.graphics.Bitmap = if (idColumn != -1) {
+                val id = cursor.getLong(idColumn)
+                MediaStore.Video.Thumbnails.getThumbnail(
+                    contentResolver,
+                    id,
+                    MediaStore.Video.Thumbnails.MINI_KIND,
+                    null
+                )
+            } else {
+                null
+            } ?: contentResolver.openFileDescriptor(uri, "r")?.use {
+                val retriever = MediaMetadataRetriever()
+                retriever.setDataSource(it.fileDescriptor)
+                retriever.getFrameAtTime(0)
+            } ?: throw IOException("can't read thumbnail")
+
+            Media(
+                name = title,
+                path = uri.toString(),
+                type = MediaType.VIDEO,
+                preview = Bitmap(thumbnail)
+            )
         }
     }
 }
