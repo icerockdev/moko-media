@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="16097.3" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES" initialViewController="zIh-nI-gcX">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="17701" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES" initialViewController="zIh-nI-gcX">
     <device id="retina4_0" orientation="portrait" appearance="light"/>
     <dependencies>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="16087"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="17703"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <scenes>
@@ -34,35 +34,43 @@
                         <rect key="frame" x="0.0" y="0.0" width="320" height="568"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                         <subviews>
-                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Ckd-4f-3KG">
-                                <rect key="frame" x="16" y="538" width="288" height="30"/>
-                                <state key="normal" title="Button"/>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="NsU-XH-ADq">
+                                <rect key="frame" x="133" y="538" width="54" height="30"/>
+                                <state key="normal" title="Camera"/>
                                 <connections>
-                                    <action selector="onSelectImagePressed" destination="TTy-86-aNs" eventType="touchUpInside" id="c6M-fe-Hc2"/>
+                                    <action selector="onCameraPressed" destination="TTy-86-aNs" eventType="touchUpInside" id="BgT-mc-5Ef"/>
+                                </connections>
+                            </button>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Ckd-4f-3KG">
+                                <rect key="frame" x="136" y="508" width="48" height="30"/>
+                                <state key="normal" title="Gallery"/>
+                                <connections>
+                                    <action selector="onGalleryPressed" destination="TTy-86-aNs" eventType="touchUpInside" id="IdH-0v-9Xw"/>
                                 </connections>
                             </button>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Q4Z-14-1SN">
-                                <rect key="frame" x="16" y="509" width="288" height="21"/>
+                                <rect key="frame" x="16" y="479" width="288" height="21"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                 <nil key="textColor"/>
                                 <nil key="highlightedColor"/>
                             </label>
                             <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="YOK-1P-2r9">
-                                <rect key="frame" x="16" y="44" width="288" height="465"/>
+                                <rect key="frame" x="16" y="44" width="288" height="435"/>
                             </imageView>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                         <constraints>
-                            <constraint firstItem="gTY-6T-yQv" firstAttribute="top" secondItem="Ckd-4f-3KG" secondAttribute="bottom" id="8pt-L2-Stc"/>
+                            <constraint firstItem="NsU-XH-ADq" firstAttribute="top" secondItem="Ckd-4f-3KG" secondAttribute="bottom" id="4Ml-2E-Ipp"/>
                             <constraint firstItem="Q4Z-14-1SN" firstAttribute="leading" secondItem="KxK-oh-5KO" secondAttribute="leadingMargin" id="Ik0-MO-qmh"/>
                             <constraint firstAttribute="trailingMargin" secondItem="Q4Z-14-1SN" secondAttribute="trailing" id="KjU-NQ-lhg"/>
                             <constraint firstItem="YOK-1P-2r9" firstAttribute="top" secondItem="gcA-zH-akF" secondAttribute="bottom" id="SyU-Es-1nK"/>
+                            <constraint firstItem="NsU-XH-ADq" firstAttribute="centerX" secondItem="KxK-oh-5KO" secondAttribute="centerX" id="a52-h8-Fzu"/>
                             <constraint firstAttribute="trailingMargin" secondItem="YOK-1P-2r9" secondAttribute="trailing" id="dVF-M8-ev7"/>
                             <constraint firstItem="YOK-1P-2r9" firstAttribute="leading" secondItem="KxK-oh-5KO" secondAttribute="leadingMargin" id="lEg-Lo-ML8"/>
                             <constraint firstItem="Ckd-4f-3KG" firstAttribute="top" secondItem="Q4Z-14-1SN" secondAttribute="bottom" constant="8" id="mkA-Rh-MSn"/>
+                            <constraint firstItem="Ckd-4f-3KG" firstAttribute="centerX" secondItem="KxK-oh-5KO" secondAttribute="centerX" id="pxG-tK-nZi"/>
+                            <constraint firstItem="gTY-6T-yQv" firstAttribute="top" secondItem="NsU-XH-ADq" secondAttribute="bottom" id="rVE-nn-jqO"/>
                             <constraint firstItem="Q4Z-14-1SN" firstAttribute="top" secondItem="YOK-1P-2r9" secondAttribute="bottom" id="rXQ-gB-zBJ"/>
-                            <constraint firstItem="Ckd-4f-3KG" firstAttribute="leading" secondItem="KxK-oh-5KO" secondAttribute="leadingMargin" id="xsW-jh-PpP"/>
-                            <constraint firstAttribute="trailingMargin" secondItem="Ckd-4f-3KG" secondAttribute="trailing" id="ySE-ZJ-dob"/>
                         </constraints>
                     </view>
                     <navigationItem key="navigationItem" title="Test" id="0jM-60-fjM"/>

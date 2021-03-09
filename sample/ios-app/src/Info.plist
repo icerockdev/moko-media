@@ -60,5 +60,7 @@
 	</array>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Photo test</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Camera test</string>
 </dict>
 </plist>

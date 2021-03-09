@@ -3,19 +3,19 @@
  */
 
 object Deps {
-    private const val kotlinVersion = "1.4.0"
+    private const val kotlinVersion = "1.4.21"
 
     private const val androidAppCompatVersion = "1.1.0"
     private const val materialDesignVersion = "1.0.0"
     private const val androidLifecycleVersion = "2.1.0"
     private const val androidCoreTestingVersion = "2.1.0"
-    private const val androidExifInterface = "1.0.0"
+    private const val androidExifInterface = "1.3.2"
     private const val androidMediaFilePicker = "1.8"
 
-    private const val coroutinesVersion = "1.3.9"
-    private const val mokoMvvmVersion = "0.8.0"
-    private const val mokoPermissionsVersion = "0.6.0"
-    const val mokoMediaVersion = "0.6.0"
+    private const val coroutinesVersion = "1.4.2"
+    private const val mokoMvvmVersion = "0.9.1"
+    private const val mokoPermissionsVersion = "0.7.0"
+    const val mokoMediaVersion = "0.6.1"
 
     object Android {
         const val compileSdk = 28
@@ -51,7 +51,8 @@ object Deps {
                 iosX64 = "dev.icerock.moko:permissions-iosx64:$mokoPermissionsVersion",
                 iosArm64 = "dev.icerock.moko:permissions-iosarm64:$mokoPermissionsVersion"
             )
-            const val mokoMvvm = "dev.icerock.moko:mvvm:$mokoMvvmVersion"
+            const val mokoMvvmCore = "dev.icerock.moko:mvvm-core:$mokoMvvmVersion"
+            const val mokoMvvmLiveData = "dev.icerock.moko:mvvm-livedata:$mokoMvvmVersion"
             const val mokoMedia = "dev.icerock.moko:media:$mokoMediaVersion"
         }
 

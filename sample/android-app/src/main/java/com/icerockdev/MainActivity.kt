@@ -26,7 +26,8 @@ class MainActivity : AppCompatActivity() {
 
         viewModel.mediaPickerController.bind(lifecycle, supportFragmentManager)
 
-        binding.button.setOnClickListener { viewModel.onSelectImagePressed() }
+        binding.cameraButton.setOnClickListener { viewModel.onCameraPressed() }
+        binding.galleryButton.setOnClickListener { viewModel.onGalleryPressed() }
         viewModel.textState.ld().observe(this) { binding.textView.text = it }
         viewModel.selectedImage.ld()
             .observe(this) { binding.imageView.setImageBitmap(it?.platformBitmap) }

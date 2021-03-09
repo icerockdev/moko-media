@@ -1,10 +1,20 @@
-source 'https://github.com/CocoaPods/Specs.git'
+source 'https://cdn.cocoapods.org/'
 
 # ignore all warnings from all pods
 inhibit_all_warnings!
 
 use_frameworks!
 platform :ios, '11.0'
+# workaround for https://github.com/CocoaPods/CocoaPods/issues/8073
+# need for correct invalidate of cache MultiPlatformLibrary.framework
+install! 'cocoapods', :disable_input_output_paths => true
+
+pre_install do |installer|
+  puts "prebuild kotlin frameworks to correct integration by CocoaPods..."
+  puts "prebuild mpp-library..."
+  `cd .. && ./gradlew :sample:mpp-library:syncMultiPlatformLibraryDebugFrameworkIosX64`
+  puts "prebuild completed"
+end
 
 target 'TestProj' do
   # MultiPlatformLibrary
