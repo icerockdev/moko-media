@@ -13,4 +13,6 @@ dependencies {
     commonMainApi(project(":media"))
 
     androidMainImplementation(Deps.Libs.Android.appCompat)
+
+    commonTestImplementation(Deps.Libs.Tests.mokoTest)
 }
