@@ -2,17 +2,24 @@
  * Copyright 2019 IceRock MAG Inc. Use of this source code is governed by the Apache 2.0 license.
  */
 
-package dev.icerock.moko.media.picker
+package dev.icerock.moko.media.picker.ios
 
 import dev.icerock.moko.media.Bitmap
 import dev.icerock.moko.media.FileMedia
 import dev.icerock.moko.media.Media
+import dev.icerock.moko.media.picker.MediaSource
+import dev.icerock.moko.permissions.Permission
 import dev.icerock.moko.permissions.PermissionsController
+import platform.CoreServices.kUTTypeImage
+import platform.CoreServices.kUTTypeMovie
+import platform.CoreServices.kUTTypeVideo
+import platform.Foundation.CFBridgingRelease
+import platform.UIKit.UIImagePickerController
+import platform.UIKit.UIImagePickerControllerSourceType
+import platform.UIKit.UIViewController
+import kotlin.coroutines.suspendCoroutine
 
-internal const val DEFAULT_MAX_IMAGE_WIDTH = 1024
-internal const val DEFAULT_MAX_IMAGE_HEIGHT = 1024
-
-expect interface MediaPickerController {
+interface MediaPickerControllerProtocol {
     val permissionsController: PermissionsController
 
     suspend fun pickImage(source: MediaSource): Bitmap

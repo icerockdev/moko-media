@@ -7,7 +7,18 @@ package dev.icerock.moko.media
 import android.util.Base64
 import java.io.ByteArrayOutputStream
 
-actual class Bitmap(val platformBitmap: android.graphics.Bitmap) {
+actual class Bitmap private constructor(
+    platformBitmap: android.graphics.Bitmap?,
+    dummyPreventPlatformClash: Unit
+) {
+    constructor(platformBitmap: android.graphics.Bitmap) : this(platformBitmap, Unit)
+
+    /** This constructor only for mocking! **/
+    constructor() : this(null, Unit)
+
+    private val _platformBitmap: android.graphics.Bitmap? = platformBitmap
+    val platformBitmap: android.graphics.Bitmap get() = _platformBitmap!!
+
     actual fun toByteArray(): ByteArray {
         val byteArrayOutputStream = ByteArrayOutputStream()
         platformBitmap.compress(

@@ -11,4 +11,6 @@ plugins {
 
 dependencies {
     commonMainApi(project(":media"))
+
+    androidMainImplementation(Deps.Libs.Android.appCompat)
 }
