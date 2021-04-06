@@ -4,7 +4,7 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import com.icerockdev.databinding.ActivityMainBinding
 import com.icerockdev.library.ImageSelectionViewModel
-import dev.icerock.moko.media.picker.ios.MediaPickerController
+import dev.icerock.moko.media.picker.MediaPickerController
 import dev.icerock.moko.mvvm.getViewModel
 import dev.icerock.moko.permissions.PermissionsController
 

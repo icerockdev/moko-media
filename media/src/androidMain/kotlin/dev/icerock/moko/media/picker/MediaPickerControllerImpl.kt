@@ -19,8 +19,8 @@ import kotlin.coroutines.suspendCoroutine
 
 internal class MediaPickerControllerImpl(
     override val permissionsController: PermissionsController,
-    private val pickerFragmentTag: String = "MediaControllerPicker",
-    private val filePickerFragmentTag: String = "FileMediaControllerPicker"
+    private val pickerFragmentTag: String,
+    private val filePickerFragmentTag: String
 ) : MediaPickerController {
     var fragmentManager: FragmentManager? = null
 
