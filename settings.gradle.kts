@@ -3,5 +3,6 @@
  */
 
 include(":media")
+include(":media-test")
 include(":sample:android-app")
 include(":sample:mpp-library")

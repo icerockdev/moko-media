@@ -13,9 +13,10 @@ object Deps {
     private const val androidMediaFilePicker = "1.8"
 
     private const val coroutinesVersion = "1.4.2"
-    private const val mokoMvvmVersion = "0.9.2"
-    private const val mokoPermissionsVersion = "0.8.0"
-    const val mokoMediaVersion = "0.6.2"
+    private const val mokoMvvmVersion = "0.10.0"
+    private const val mokoPermissionsVersion = "0.9.0"
+    private const val mokoTestVersion = "0.2.1"
+    const val mokoMediaVersion = "0.7.0"
 
     object Android {
         const val compileSdk = 28
@@ -47,11 +48,8 @@ object Deps {
         object MultiPlatform {
             const val coroutines =
                 "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion"
-            val mokoPermissions = MultiPlatformLibrary(
-                common = "dev.icerock.moko:permissions:$mokoPermissionsVersion",
-                iosX64 = "dev.icerock.moko:permissions-iosx64:$mokoPermissionsVersion",
-                iosArm64 = "dev.icerock.moko:permissions-iosarm64:$mokoPermissionsVersion"
-            )
+            val mokoPermissions = "dev.icerock.moko:permissions:$mokoPermissionsVersion"
+                .defaultMPL(ios = true)
             const val mokoMvvmCore = "dev.icerock.moko:mvvm-core:$mokoMvvmVersion"
             const val mokoMvvmLiveData = "dev.icerock.moko:mvvm-livedata:$mokoMvvmVersion"
             const val mokoMedia = "dev.icerock.moko:media:$mokoMediaVersion"
@@ -62,6 +60,10 @@ object Deps {
                 "org.jetbrains.kotlin:kotlin-test-junit:$kotlinVersion"
             const val androidCoreTesting =
                 "androidx.arch.core:core-testing:$androidCoreTestingVersion"
+            const val mokoTest = "dev.icerock.moko:test:$mokoTestVersion"
+            const val mokoMvvmTest = "dev.icerock.moko:mvvm-test:$mokoMvvmVersion"
+            const val mokoPermissionsTest =
+                "dev.icerock.moko:permissions-test:$mokoPermissionsVersion"
         }
     }
 }

@@ -7,6 +7,7 @@ package dev.icerock.moko.media.picker
 import dev.icerock.moko.media.Bitmap
 import dev.icerock.moko.media.Media
 import dev.icerock.moko.media.MediaType
+import dev.icerock.moko.media.picker.ios.MediaPickerController
 import platform.AVFoundation.AVAsset
 import platform.AVFoundation.AVAssetImageGenerator
 import platform.AVFoundation.AVURLAsset
