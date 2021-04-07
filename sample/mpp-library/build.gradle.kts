@@ -16,6 +16,11 @@ dependencies {
     commonMainApi(Deps.Libs.MultiPlatform.mokoMvvmCore)
     commonMainApi(Deps.Libs.MultiPlatform.mokoMvvmLiveData)
     commonMainApi(Deps.Libs.MultiPlatform.mokoMedia)
+
+    commonTestImplementation(Deps.Libs.Tests.mokoTest)
+    commonTestImplementation(Deps.Libs.Tests.mokoMvvmTest)
+    commonTestImplementation(Deps.Libs.Tests.mokoPermissionsTest)
+    commonTestImplementation(project(":media-test"))
 }
 
 framework {
