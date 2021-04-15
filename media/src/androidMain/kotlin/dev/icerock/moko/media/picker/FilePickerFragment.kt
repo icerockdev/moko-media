@@ -10,6 +10,7 @@ import androidx.fragment.app.Fragment
 import com.nbsp.materialfilepicker.ui.FilePickerActivity
 import dev.icerock.moko.media.FileMedia
 import java.io.File
+import com.nbsp.materialfilepicker.MaterialFilePicker
 
 class FilePickerFragment : Fragment() {
     init {
@@ -25,9 +26,10 @@ class FilePickerFragment : Fragment() {
 
         // TODO нужно убрать использование внешней зависимости, сделать конфигурацию способа
         //  выбора файла из вне (аргументом в контроллер передавать)
-        val intent = Intent(requireContext(), FilePickerActivity::class.java)
-        intent.putExtra(FilePickerActivity.ARG_CLOSEABLE, true)
-        startActivityForResult(intent, requestCode)
+        MaterialFilePicker().withSupportFragment(this)
+            .withCloseMenu(true)
+            .withRequestCode(requestCode)
+            .start()
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
