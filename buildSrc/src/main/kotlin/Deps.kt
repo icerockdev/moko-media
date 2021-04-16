@@ -10,18 +10,18 @@ object Deps {
     private const val androidLifecycleVersion = "2.1.0"
     private const val androidCoreTestingVersion = "2.1.0"
     private const val androidExifInterface = "1.3.2"
-    private const val androidMediaFilePicker = "1.8"
+    private const val androidMediaFilePicker = "1.9.1"
 
     private const val coroutinesVersion = "1.4.2"
     private const val mokoMvvmVersion = "0.10.0"
     private const val mokoPermissionsVersion = "0.9.0"
     private const val mokoTestVersion = "0.2.1"
-    const val mokoMediaVersion = "0.7.0"
+    const val mokoMediaVersion = "0.7.1"
 
     object Android {
         const val compileSdk = 28
         const val targetSdk = 28
-        const val minSdk = 16
+        const val minSdk = 19
     }
 
     object Plugins {
@@ -42,7 +42,7 @@ object Deps {
             const val material = "com.google.android.material:material:$materialDesignVersion"
             const val lifecycle = "androidx.lifecycle:lifecycle-extensions:$androidLifecycleVersion"
             const val exifInterface = "androidx.exifinterface:exifinterface:$androidExifInterface"
-            const val mediaFilePicker = "com.nbsp:library:$androidMediaFilePicker"
+            const val mediaFilePicker = "com.nbsp:materialfilepicker:$androidMediaFilePicker"
         }
 
         object MultiPlatform {
