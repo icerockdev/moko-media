@@ -9,6 +9,7 @@ import dev.icerock.moko.media.FileMedia
 import dev.icerock.moko.media.Media
 import dev.icerock.moko.media.picker.DEFAULT_MAX_IMAGE_HEIGHT
 import dev.icerock.moko.media.picker.DEFAULT_MAX_IMAGE_WIDTH
+import dev.icerock.moko.media.picker.DocumentPickerDelegateToContinuation
 import dev.icerock.moko.media.picker.ImagePickerDelegateToContinuation
 import dev.icerock.moko.media.picker.MediaSource
 import dev.icerock.moko.permissions.Permission
@@ -17,10 +18,13 @@ import platform.CoreServices.kUTTypeImage
 import platform.CoreServices.kUTTypeMovie
 import platform.CoreServices.kUTTypeVideo
 import platform.Foundation.CFBridgingRelease
+import platform.UIKit.UIDocumentPickerViewController
 import platform.UIKit.UIImagePickerController
 import platform.UIKit.UIImagePickerControllerSourceType
 import platform.UIKit.UIViewController
 import kotlin.coroutines.suspendCoroutine
+import platform.CoreServices.kUTTypeData
+import platform.UIKit.UIDocumentPickerMode
 
 class MediaPickerController(
     override val permissionsController: PermissionsController,
@@ -65,7 +69,24 @@ class MediaPickerController(
     }
 
     override suspend fun pickFiles(): FileMedia {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        var delegatePtr: DocumentPickerDelegateToContinuation? // strong reference to delegate (view controller have weak ref)
+        val fileMedia = suspendCoroutine<FileMedia> { continuation ->
+            val localDelegatePtr = DocumentPickerDelegateToContinuation(continuation)
+            delegatePtr = localDelegatePtr
+
+            val controller = UIDocumentPickerViewController(
+                    documentTypes = listOf(kStandardFileTypesId),
+                    inMode = UIDocumentPickerMode.UIDocumentPickerModeOpen
+            )
+            controller.delegate = localDelegatePtr
+            getViewController().presentViewController(
+                    controller,
+                    animated = true,
+                    completion = null
+            )
+        }
+        delegatePtr = null
+        return fileMedia
     }
 
     private fun MediaSource.requiredPermissions(): List<Permission> =
@@ -109,5 +130,6 @@ class MediaPickerController(
         val kVideoType = CFBridgingRelease(kUTTypeVideo) as String
         val kMovieType = CFBridgingRelease(kUTTypeMovie) as String
         val kImageType = CFBridgingRelease(kUTTypeImage) as String
+        val kStandardFileTypesId = CFBridgingRelease(kUTTypeData) as String
     }
 }
