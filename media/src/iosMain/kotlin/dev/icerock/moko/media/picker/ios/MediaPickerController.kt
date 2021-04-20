@@ -23,7 +23,7 @@ import platform.UIKit.UIImagePickerController
 import platform.UIKit.UIImagePickerControllerSourceType
 import platform.UIKit.UIViewController
 import kotlin.coroutines.suspendCoroutine
-import platform.UniformTypeIdentifiers.UTType
+import platform.UIKit.UIDocumentPickerMode
 
 class MediaPickerController(
     override val permissionsController: PermissionsController,
@@ -73,7 +73,10 @@ class MediaPickerController(
             val localDelegatePtr = DocumentPickerDelegateToContinuation(continuation)
             delegatePtr = localDelegatePtr
 
-            val controller = UIDocumentPickerViewController(forOpeningContentTypes = listOf(UTType.typeWithIdentifier("public.data")))
+            val controller = UIDocumentPickerViewController(
+                    documentTypes = listOf(kStandardFileTypesId),
+                    inMode = UIDocumentPickerMode.UIDocumentPickerModeOpen
+            )
             controller.delegate = localDelegatePtr
             getViewController().presentViewController(
                     controller,
@@ -126,5 +129,6 @@ class MediaPickerController(
         val kVideoType = CFBridgingRelease(kUTTypeVideo) as String
         val kMovieType = CFBridgingRelease(kUTTypeMovie) as String
         val kImageType = CFBridgingRelease(kUTTypeImage) as String
+        val kStandardFileTypesId = "public.data"
     }
 }
