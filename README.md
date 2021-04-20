@@ -44,6 +44,7 @@ TODO
   - 0.6.2
   - 0.7.0
   - 0.7.1
+  - 0.7.2
 
 ## Installation
 root build.gradle  
@@ -59,7 +60,7 @@ allprojects {
 project build.gradle
 ```groovy
 dependencies {
-    commonMainApi("dev.icerock.moko:media:0.7.1")
+    commonMainApi("dev.icerock.moko:media:0.7.2")
 }
 ```
 
