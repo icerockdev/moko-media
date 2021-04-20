@@ -23,6 +23,7 @@ import platform.UIKit.UIImagePickerController
 import platform.UIKit.UIImagePickerControllerSourceType
 import platform.UIKit.UIViewController
 import kotlin.coroutines.suspendCoroutine
+import platform.CoreServices.kUTTypeData
 import platform.UIKit.UIDocumentPickerMode
 
 class MediaPickerController(
@@ -129,6 +130,6 @@ class MediaPickerController(
         val kVideoType = CFBridgingRelease(kUTTypeVideo) as String
         val kMovieType = CFBridgingRelease(kUTTypeMovie) as String
         val kImageType = CFBridgingRelease(kUTTypeImage) as String
-        val kStandardFileTypesId = "public.data"
+        val kStandardFileTypesId = CFBridgingRelease(kUTTypeData) as String
     }
 }
