@@ -40,4 +40,8 @@ class TestViewController: UIViewController {
     @IBAction func onGalleryPressed() {
         viewModel.onGalleryPressed()
     }
+    
+    @IBAction private func onPickFileTapped() {
+        viewModel.selectFile()
+    }
 }

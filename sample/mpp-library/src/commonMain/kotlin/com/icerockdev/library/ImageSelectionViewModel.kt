@@ -1,6 +1,7 @@
 package com.icerockdev.library
 
 import dev.icerock.moko.media.Bitmap
+import dev.icerock.moko.media.picker.CanceledException
 import dev.icerock.moko.media.picker.MediaPickerController
 import dev.icerock.moko.media.picker.MediaSource
 import dev.icerock.moko.mvvm.livedata.LiveData
@@ -24,6 +25,19 @@ class ImageSelectionViewModel(
 
     fun onGalleryPressed() {
         selectImage(MediaSource.GALLERY)
+    }
+
+    fun selectFile() {
+        viewModelScope.launch {
+            try {
+                val file = mediaPickerController.pickFiles()
+                _textState.value = file.name
+            } catch(canceled: CanceledException) {
+                _textState.value = "canceled"
+            } catch (exc: Exception) {
+                _textState.value = exc.toString()
+            }
+        }
     }
 
     private fun selectImage(source: MediaSource) {
