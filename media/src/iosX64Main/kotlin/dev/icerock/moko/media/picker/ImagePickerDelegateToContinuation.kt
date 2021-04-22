@@ -30,6 +30,11 @@ internal actual class ImagePickerDelegateToContinuation actual constructor(
     private val continuation: Continuation<Media>
 ) : NSObject(), UINavigationControllerDelegateProtocol, UIImagePickerControllerDelegateProtocol {
 
+    override fun imagePickerControllerDidCancel(picker: UIImagePickerController) {
+        picker.dismissModalViewControllerAnimated(true)
+        continuation.resumeWith(Result.failure(CanceledException()))
+    }
+
     override fun imagePickerController(
         picker: UIImagePickerController,
         didFinishPickingMediaWithInfo: Map<Any?, *>

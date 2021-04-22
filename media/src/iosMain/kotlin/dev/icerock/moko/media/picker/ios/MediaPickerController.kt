@@ -7,6 +7,7 @@ package dev.icerock.moko.media.picker.ios
 import dev.icerock.moko.media.Bitmap
 import dev.icerock.moko.media.FileMedia
 import dev.icerock.moko.media.Media
+import dev.icerock.moko.media.picker.AdaptivePresentationDelegateToContinuation
 import dev.icerock.moko.media.picker.DEFAULT_MAX_IMAGE_HEIGHT
 import dev.icerock.moko.media.picker.DEFAULT_MAX_IMAGE_WIDTH
 import dev.icerock.moko.media.picker.DocumentPickerDelegateToContinuation
@@ -25,6 +26,7 @@ import platform.UIKit.UIViewController
 import kotlin.coroutines.suspendCoroutine
 import platform.CoreServices.kUTTypeData
 import platform.UIKit.UIDocumentPickerMode
+import platform.UIKit.presentationController
 
 class MediaPickerController(
     override val permissionsController: PermissionsController,
@@ -49,9 +51,12 @@ class MediaPickerController(
 
         @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
         var delegatePtr: ImagePickerDelegateToContinuation? // strong reference to delegate (view controller have weak ref)
+        var presentationDelegate: AdaptivePresentationDelegateToContinuation?
         val media = suspendCoroutine<Media> { continuation ->
             val localDelegatePtr = ImagePickerDelegateToContinuation(continuation)
             delegatePtr = localDelegatePtr
+            val localPresentationDelegatePtr = AdaptivePresentationDelegateToContinuation(continuation)
+            presentationDelegate = localPresentationDelegatePtr
 
             val controller = UIImagePickerController()
             controller.sourceType = source.toSourceType()
@@ -62,17 +67,21 @@ class MediaPickerController(
                 animated = true,
                 completion = null
             )
+            controller.presentationController?.delegate = localPresentationDelegatePtr
         }
         delegatePtr = null
-
+        presentationDelegate = null
         return media.preview
     }
 
     override suspend fun pickFiles(): FileMedia {
         var delegatePtr: DocumentPickerDelegateToContinuation? // strong reference to delegate (view controller have weak ref)
+        var presentationDelegate: AdaptivePresentationDelegateToContinuation?
         val fileMedia = suspendCoroutine<FileMedia> { continuation ->
             val localDelegatePtr = DocumentPickerDelegateToContinuation(continuation)
             delegatePtr = localDelegatePtr
+            val localPresentationDelegatePtr = AdaptivePresentationDelegateToContinuation(continuation)
+            presentationDelegate = localPresentationDelegatePtr
 
             val controller = UIDocumentPickerViewController(
                     documentTypes = listOf(kStandardFileTypesId),
@@ -84,8 +93,10 @@ class MediaPickerController(
                     animated = true,
                     completion = null
             )
+            controller.presentationController?.delegate = localPresentationDelegatePtr
         }
         delegatePtr = null
+        presentationDelegate = null
         return fileMedia
     }
 
