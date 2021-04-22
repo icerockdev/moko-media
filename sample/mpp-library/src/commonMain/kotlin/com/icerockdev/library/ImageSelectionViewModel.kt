@@ -32,7 +32,7 @@ class ImageSelectionViewModel(
             try {
                 val file = mediaPickerController.pickFiles()
                 _textState.value = file.name
-            } catch(canceled: CanceledException) {
+            } catch (canceled: CanceledException) {
                 _textState.value = "canceled"
             } catch (exc: Exception) {
                 _textState.value = exc.toString()
@@ -46,6 +46,8 @@ class ImageSelectionViewModel(
                 val image = mediaPickerController.pickImage(source)
                 _selectedImage.value = image
                 _textState.value = "image selected"
+            } catch (canceled: CanceledException) {
+                _textState.value = "canceled"
             } catch (exc: Exception) {
                 exc.printStackTrace()
                 _selectedImage.value = null
