@@ -6,6 +6,7 @@ package dev.icerock.moko.media.picker
 
 import android.app.Activity
 import android.content.Intent
+import android.os.Environment
 import androidx.fragment.app.Fragment
 import com.nbsp.materialfilepicker.ui.FilePickerActivity
 import dev.icerock.moko.media.FileMedia
@@ -26,8 +27,10 @@ class FilePickerFragment : Fragment() {
 
         // TODO нужно убрать использование внешней зависимости, сделать конфигурацию способа
         //  выбора файла из вне (аргументом в контроллер передавать)
+        val externalStorage = Environment.getExternalStorageDirectory()
         MaterialFilePicker().withSupportFragment(this)
             .withCloseMenu(true)
+            .withRootPath(externalStorage.absolutePath)
             .withRequestCode(requestCode)
             .start()
     }
