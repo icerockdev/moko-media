@@ -42,7 +42,7 @@ object Deps {
             const val material = "com.google.android.material:material:$materialDesignVersion"
             const val lifecycle = "androidx.lifecycle:lifecycle-extensions:$androidLifecycleVersion"
             const val exifInterface = "androidx.exifinterface:exifinterface:$androidExifInterface"
-            const val mediaFilePicker = "com.nbsp:materialfilepicker:$androidMediaFilePicker"
+            const val mediaFilePicker = "com.github.icerockdev:MaterialFilePicker:$androidMediaFilePicker"
         }
 
         object MultiPlatform {
