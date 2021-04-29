@@ -85,7 +85,7 @@ class MediaPickerController(
 
             val controller = UIDocumentPickerViewController(
                     documentTypes = listOf(kStandardFileTypesId),
-                    inMode = UIDocumentPickerMode.UIDocumentPickerModeOpen
+                    inMode = UIDocumentPickerMode.UIDocumentPickerModeImport
             )
             controller.delegate = localDelegatePtr
             getViewController().presentViewController(
