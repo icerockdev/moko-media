@@ -9,7 +9,6 @@ allprojects {
         mavenCentral()
         google()
 
-        maven { url = uri("http://dl.bintray.com/lukaville/maven") }
         maven { url = uri("https://jitpack.io") }
 
         jcenter {

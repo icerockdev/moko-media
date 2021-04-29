@@ -54,7 +54,6 @@ root build.gradle
 allprojects {
     repositories {
         mavenCentral()
-        maven { url = "http://dl.bintray.com/lukaville/maven" }
     }
 }
 ```
