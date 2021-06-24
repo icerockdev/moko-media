@@ -4,7 +4,7 @@ plugins {
 }
 
 android {
-    compileSdkVersion(libs.versions.compileSdk.get())
+    compileSdkVersion(libs.versions.compileSdk.get().toInt())
 
     buildFeatures.viewBinding = true
 
