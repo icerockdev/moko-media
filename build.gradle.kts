@@ -4,34 +4,36 @@
 
 import java.util.Base64
 
-allprojects {
+buildscript {
     repositories {
         mavenCentral()
         google()
-
-        maven { url = uri("https://jitpack.io") }
-
-        jcenter {
-            content {
-                includeGroup("org.jetbrains.trove4j")
-            }
-        }
+        gradlePluginPortal()
     }
 
-    plugins.withId(Deps.Plugins.androidLibrary.id) {
+    dependencies {
+        classpath("dev.icerock:mobile-multiplatform:0.10.1")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.5.10")
+        classpath("com.android.tools.build:gradle:4.2.1")
+    }
+}
+
+allprojects {
+
+    plugins.withId("com.android.library") {
         configure<com.android.build.gradle.LibraryExtension> {
-            compileSdkVersion(Deps.Android.compileSdk)
+            compileSdkVersion(libs.versions.compileSdk.get().toInt())
 
             defaultConfig {
-                minSdkVersion(Deps.Android.minSdk)
-                targetSdkVersion(Deps.Android.targetSdk)
+                minSdkVersion(libs.versions.minSdk.get().toInt())
+                targetSdkVersion(libs.versions.targetSdk.get().toInt())
             }
         }
     }
 
-    plugins.withId(Deps.Plugins.mavenPublish.id) {
+    plugins.withId("org.gradle.maven-publish") {
         group = "dev.icerock.moko"
-        version = Deps.mokoMediaVersion
+        version = libs.versions.mokoMediaVersion.get()
 
         val javadocJar by tasks.registering(Jar::class) {
             archiveClassifier.set("javadoc")
@@ -88,7 +90,7 @@ allprojects {
                 }
             }
 
-            apply(plugin = Deps.Plugins.signing.id)
+            apply(plugin = "signing")
 
             configure<SigningExtension> {
                 val signingKeyId: String? = System.getenv("SIGNING_KEY_ID")

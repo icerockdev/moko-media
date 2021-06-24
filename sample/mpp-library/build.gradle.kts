@@ -3,27 +3,28 @@
  */
 
 plugins {
-    plugin(Deps.Plugins.androidLibrary)
-    plugin(Deps.Plugins.kotlinMultiplatform)
-    plugin(Deps.Plugins.mobileMultiplatform)
-    plugin(Deps.Plugins.iosFramework)
+    id("com.android.library")
+    id("org.jetbrains.kotlin.multiplatform")
+    id("dev.icerock.mobile.multiplatform")
+    id("dev.icerock.mobile.multiplatform.ios-framework")
 }
 
 dependencies {
-    commonMainApi(Deps.Libs.MultiPlatform.coroutines)
+    commonMainApi(libs.coroutines)
 
-    commonMainApi(Deps.Libs.MultiPlatform.mokoPermissions.common)
-    commonMainApi(Deps.Libs.MultiPlatform.mokoMvvmCore)
-    commonMainApi(Deps.Libs.MultiPlatform.mokoMvvmLiveData)
-    commonMainApi(Deps.Libs.MultiPlatform.mokoMedia)
+    commonMainApi(libs.mokoPermissions)
+    commonMainApi(libs.mokoMvvmCore)
+    commonMainApi(libs.mokoMvvmLiveData)
+    commonMainApi(libs.mokoMedia)
 
-    commonTestImplementation(Deps.Libs.Tests.mokoTest)
-    commonTestImplementation(Deps.Libs.Tests.mokoMvvmTest)
-    commonTestImplementation(Deps.Libs.Tests.mokoPermissionsTest)
-    commonTestImplementation(project(":media-test"))
+    commonTestImplementation(libs.mokoTest)
+    commonTestImplementation(libs.mokoMvvmTest)
+    commonTestImplementation(libs.mokoPermissionsTest)
+    commonTestImplementation(projects.mediaTest)
 }
 
 framework {
     export(project(":media"))
-    export(Deps.Libs.MultiPlatform.mokoPermissions)
+    export("${libs.mokoPermissions.get().module.group}:${libs.mokoPermissions.get().module.name}:${libs.versions.mokoPermissionsVersion.get()}",
+        "${libs.mokoPermissions.get().module.group}:${libs.mokoPermissions.get().module.name}:${libs.versions.mokoPermissionsVersion.get()}")
 }

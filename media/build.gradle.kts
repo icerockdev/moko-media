@@ -3,10 +3,10 @@
  */
 
 plugins {
-    plugin(Deps.Plugins.androidLibrary)
-    plugin(Deps.Plugins.kotlinMultiplatform)
-    plugin(Deps.Plugins.mobileMultiplatform)
-    plugin(Deps.Plugins.mavenPublish)
+    id("com.android.library")
+    id("org.jetbrains.kotlin.multiplatform")
+    id("dev.icerock.mobile.multiplatform")
+    id("org.gradle.maven-publish")
 }
 
 kotlin {
@@ -19,12 +19,12 @@ kotlin {
 }
 
 dependencies {
-    commonMainImplementation(Deps.Libs.MultiPlatform.coroutines)
-    commonMainApi(Deps.Libs.MultiPlatform.mokoPermissions.common)
+    commonMainImplementation(libs.coroutines)
+    commonMainApi(libs.mokoPermissions)
 
-    androidMainImplementation(Deps.Libs.Android.appCompat)
-    androidMainImplementation(Deps.Libs.Android.exifInterface)
+    androidMainImplementation(libs.appCompat)
+    androidMainImplementation(libs.exifInterface)
 
     // TODO #34 remove external dependency
-    androidMainImplementation(Deps.Libs.Android.mediaFilePicker)
+    androidMainImplementation(libs.mediaFilePicker)
 }
