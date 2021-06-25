@@ -25,6 +25,5 @@ dependencies {
 
 framework {
     export(project(":media"))
-    export("${libs.mokoPermissions.get().module.group}:${libs.mokoPermissions.get().module.name}:${libs.versions.mokoPermissionsVersion.get()}",
-        "${libs.mokoPermissions.get().module.group}:${libs.mokoPermissions.get().module.name}:${libs.versions.mokoPermissionsVersion.get()}")
+    export(libs.mokoPermissions)
 }

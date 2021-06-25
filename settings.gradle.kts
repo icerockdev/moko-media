@@ -5,21 +5,10 @@
 enableFeaturePreview("VERSION_CATALOGS")
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
-pluginManagement {
-    repositories {
-        mavenCentral()
-        google()
-
-        gradlePluginPortal()
-    }
-}
-
 dependencyResolutionManagement {
     repositories {
         mavenCentral()
         google()
-
-        maven { url = uri("https://jitpack.io") }
 
         jcenter {
             content {
@@ -27,6 +16,8 @@ dependencyResolutionManagement {
                 includeGroup("org.jetbrains.kotlinx")
             }
         }
+
+        maven { url = uri("https://jitpack.io") }
     }
 }
 
