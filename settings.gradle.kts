@@ -12,7 +12,6 @@ dependencyResolutionManagement {
 
         jcenter {
             content {
-                includeGroup("org.jetbrains.trove4j")
                 includeGroup("org.jetbrains.kotlinx")
             }
         }
@@ -20,6 +19,8 @@ dependencyResolutionManagement {
         maven { url = uri("https://jitpack.io") }
     }
 }
+
+includeBuild("media-build-logic")
 
 include(":media")
 include(":media-test")

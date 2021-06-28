@@ -3,17 +3,13 @@ kotlinVersion = "1.5.20"
 androidAppCompatVersion = "1.2.0"
 materialDesignVersion = "1.0.0"
 androidLifecycleVersion = "2.1.0"
-androidCoreTestingVersion = "2.1.0"
 androidExifInterface = "1.3.2"
 androidMediaFilePicker = "1.9.1"
-coroutinesVersion = "1.4.3"
-mokoMvvmVersion = "0.10.1"
+coroutinesVersion = "1.5.0-native-mt"
+mokoMvvmVersion = "0.11.0"
 mokoPermissionsVersion = "0.10.0"
-mokoTestVersion = "0.2.1"
+mokoTestVersion = "0.4.0"
 mokoMediaVersion = "0.9.0"
-compileSdk = "28"
-targetSdk = "28"
-minSdk = "19"
 
 [libraries]
 appCompat = { module = "androidx.appcompat:appcompat", version.ref = "androidAppCompatVersion" }
@@ -26,8 +22,6 @@ mokoPermissions = { module = "dev.icerock.moko:permissions", version.ref = "moko
 mokoMvvmCore = { module = "dev.icerock.moko:mvvm-core", version.ref = "mokoMvvmVersion" }
 mokoMvvmLiveData = { module = "dev.icerock.moko:mvvm-livedata", version.ref = "mokoMvvmVersion" }
 mokoMedia = { module = "dev.icerock.moko:media", version.ref = "mokoMediaVersion" }
-kotlinTestJUnit = { module = "org.jetbrains.kotlin:kotlin-test-junit", version.ref = "kotlinVersion" }
-androidCoreTesting = { module = "androidx.arch.core:core-testing", version.ref = "androidCoreTestingVersion" }
-mokoTest = { module = "dev.icerock.moko:test", version.ref = "mokoTestVersion" }
+mokoTest = { module = "dev.icerock.moko:test-core", version.ref = "mokoTestVersion" }
 mokoMvvmTest = { module = "dev.icerock.moko:mvvm-test", version.ref = "mokoMvvmVersion" }
 mokoPermissionsTest = { module = "dev.icerock.moko:permissions-test", version.ref = "mokoPermissionsVersion" }
