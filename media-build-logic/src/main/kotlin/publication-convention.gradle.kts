@@ -40,6 +40,16 @@ publishing {
                     name.set("Aleksey Mikhailov")
                     email.set("aleksey.mikhailov@icerockdev.com")
                 }
+                developer {
+                    id.set("Tetraquark")
+                    name.set("Vladislav Areshkin")
+                    email.set("vareshkin@icerockdev.com")
+                }
+                developer {
+                    id.set("RezMike")
+                    name.set("Mikhail Reznichenko")
+                    email.set("mreznichenko@icerockdev.com")
+                }
             }
 
             scm {
