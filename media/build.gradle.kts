@@ -3,28 +3,18 @@
  */
 
 plugins {
-    plugin(Deps.Plugins.androidLibrary)
-    plugin(Deps.Plugins.kotlinMultiplatform)
-    plugin(Deps.Plugins.mobileMultiplatform)
-    plugin(Deps.Plugins.mavenPublish)
-}
-
-kotlin {
-    sourceSets {
-        val iosArm64Main by getting
-        val iosX64Main by getting
-
-        iosArm64Main.dependsOn(iosX64Main)
-    }
+    id("multiplatform-library-convention")
+    id("dev.icerock.mobile.multiplatform.android-manifest")
+    id("publication-convention")
 }
 
 dependencies {
-    commonMainImplementation(Deps.Libs.MultiPlatform.coroutines)
-    commonMainApi(Deps.Libs.MultiPlatform.mokoPermissions.common)
+    commonMainImplementation(libs.coroutines)
+    commonMainApi(libs.mokoPermissions)
 
-    androidMainImplementation(Deps.Libs.Android.appCompat)
-    androidMainImplementation(Deps.Libs.Android.exifInterface)
+    "androidMainImplementation"(libs.appCompat)
+    "androidMainImplementation"(libs.exifInterface)
 
     // TODO #34 remove external dependency
-    androidMainImplementation(Deps.Libs.Android.mediaFilePicker)
+    "androidMainImplementation"(libs.mediaFilePicker)
 }
