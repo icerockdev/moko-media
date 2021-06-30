@@ -81,7 +81,7 @@ object MediaFactory {
             } ?: throw IOException("can't open stream")
 
             Media(
-                name = title,
+                name = title.orEmpty(),
                 path = uri.toString(),
                 type = MediaType.PHOTO,
                 preview = Bitmap(normalizedBitmap)

@@ -1,5 +1,5 @@
 ![moko-media](img/logo.png)  
-[![GitHub license](https://img.shields.io/badge/license-Apache%20License%202.0-blue.svg?style=flat)](http://www.apache.org/licenses/LICENSE-2.0) [![Download](https://img.shields.io/maven-central/v/dev.icerock.moko/media) ](https://repo1.maven.org/maven2/dev/icerock/moko/media) ![kotlin-version](https://img.shields.io/badge/kotlin-1.4.31-orange)
+[![GitHub license](https://img.shields.io/badge/license-Apache%20License%202.0-blue.svg?style=flat)](http://www.apache.org/licenses/LICENSE-2.0) [![Download](https://img.shields.io/maven-central/v/dev.icerock.moko/media) ](https://repo1.maven.org/maven2/dev/icerock/moko/media) ![kotlin-version](https://kotlin-version.aws.icerock.dev/kotlin-version?group=dev.icerock.moko&name=media)
 
 # Mobile Kotlin media access
 This is a Kotlin MultiPlatform library that provides media picking in common code (photo/video) and video player controls. 
@@ -18,35 +18,9 @@ This is a Kotlin MultiPlatform library that provides media picking in common cod
 TODO
 
 ## Requirements
-- Gradle version 6.0+
+- Gradle version 6.8+
 - Android API 16+
-- iOS version 9.0+
-
-## Versions
-### Bintray
-- kotlin 1.3.50
-  - 0.1.0
-- kotlin 1.3.61
-  - 0.2.0
-  - 0.3.0
-- kotlin 1.3.70
-  - 0.4.0
-  - 0.4.1
-  - 0.4.2
-  - 0.4.3
-- kotlin 1.4.0
-  - 0.5.0
-  - 0.6.0
-- kotlin 1.4.21
-  - 0.6.1
-### mavenCentral
-- kotlin 1.4.31
-  - 0.6.2
-  - 0.7.0
-  - 0.7.1
-  - 0.8.0
-  - 0.8.1
-  - 0.8.2
+- iOS version 11.0+
 
 ## Installation
 root build.gradle  
@@ -62,7 +36,7 @@ allprojects {
 project build.gradle
 ```groovy
 dependencies {
-    commonMainApi("dev.icerock.moko:media:0.8.2")
+    commonMainApi("dev.icerock.moko:media:0.9.0")
 }
 ```
 
