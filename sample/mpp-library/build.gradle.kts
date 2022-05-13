@@ -3,17 +3,9 @@
  */
 
 plugins {
-    id("com.android.library")
-    id("android-base-convention")
-    id("detekt-convention")
-    id("org.jetbrains.kotlin.multiplatform")
-    id("dev.icerock.mobile.multiplatform.android-manifest")
+    id("dev.icerock.moko.gradle.multiplatform.mobile")
     id("dev.icerock.mobile.multiplatform.ios-framework")
-}
-
-kotlin {
-    android()
-    ios()
+    id("dev.icerock.moko.gradle.detekt")
 }
 
 dependencies {

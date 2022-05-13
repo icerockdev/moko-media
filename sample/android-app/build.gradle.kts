@@ -1,6 +1,6 @@
 plugins {
-    id("android-app-convention")
-    id("detekt-convention")
+    id("dev.icerock.moko.gradle.android.application")
+    id("dev.icerock.moko.gradle.detekt")
 }
 
 android {

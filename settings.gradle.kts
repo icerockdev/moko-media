@@ -10,17 +10,9 @@ dependencyResolutionManagement {
         mavenCentral()
         google()
 
-        jcenter {
-            content {
-                includeGroup("org.jetbrains.kotlinx")
-            }
-        }
-
         maven { url = uri("https://jitpack.io") }
     }
 }
-
-includeBuild("media-build-logic")
 
 include(":media")
 include(":media-test")

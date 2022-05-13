@@ -3,15 +3,16 @@
  */
 
 plugins {
-    id("multiplatform-library-convention")
-    id("dev.icerock.mobile.multiplatform.android-manifest")
-    id("publication-convention")
+    id("dev.icerock.moko.gradle.multiplatform.mobile")
+    id("dev.icerock.moko.gradle.publication")
+    id("dev.icerock.moko.gradle.stub.javadoc")
+    id("dev.icerock.moko.gradle.detekt")
 }
 
 dependencies {
     commonMainApi(projects.media)
 
-    "androidMainImplementation"(libs.appCompat)
+    androidMainImplementation(libs.appCompat)
 
     commonTestImplementation(libs.mokoTest)
 }
