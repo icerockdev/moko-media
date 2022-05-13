@@ -4,15 +4,22 @@
 
 package dev.icerock.moko.media
 
-import kotlinx.cinterop.*
+import kotlinx.cinterop.ByteVar
+import kotlinx.cinterop.CPointer
+import kotlinx.cinterop.get
+import kotlinx.cinterop.reinterpret
+import kotlinx.cinterop.useContents
 import platform.CoreGraphics.CGRectMake
 import platform.CoreGraphics.CGSizeMake
 import platform.Foundation.base64EncodedStringWithOptions
-import platform.UIKit.*
+import platform.UIKit.UIGraphicsBeginImageContextWithOptions
+import platform.UIKit.UIGraphicsEndImageContext
+import platform.UIKit.UIGraphicsGetImageFromCurrentImageContext
+import platform.UIKit.UIImage
+import platform.UIKit.UIImageJPEGRepresentation
 
 actual class Bitmap(val image: UIImage) {
 
-    @ExperimentalUnsignedTypes
     actual fun toByteArray(): ByteArray {
         val imageData = UIImageJPEGRepresentation(image, 0.99)
             ?: throw IllegalArgumentException("image data is null")
