@@ -37,10 +37,8 @@ actual class MediaPlayerController {
         }
 
         override fun surfaceCreated(holder: SurfaceHolder) {
-            holder?.let { surfaceHolder ->
-                this@MediaPlayerController.surfaceHolder = surfaceHolder
-                isSurfaceReady = true
-            }
+            this@MediaPlayerController.surfaceHolder = holder
+            isSurfaceReady = true
         }
     }
 
@@ -53,7 +51,7 @@ actual class MediaPlayerController {
 
     fun setSurfaceView(surfaceView: SurfaceView) {
         mediaPlayer?.run {
-            setDataSource(surfaceView.context, uri!!) // FIXME MEDIUM cleanup
+            uri?.also { setDataSource(surfaceView.context, it) }
             prepareAsync()
         }
         surfaceView.holder.addCallback(surfaceViewCallback)

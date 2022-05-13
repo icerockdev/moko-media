@@ -10,7 +10,7 @@ class BitmapMockTests {
     @Test
     fun `bitmap byte array`() {
         val bitmap = createBitmapMock()
-        val byteArray = bitmap.toByteArray()
+        bitmap.toByteArray()
         // we should not throw any exceptions
     }
 }

@@ -25,6 +25,7 @@ object MediaFactory {
         }
     }
 
+    @Suppress("ThrowsCount")
     fun create(context: Context, uri: Uri): Media {
         val projection = arrayOf(
             MediaStore.MediaColumns.MIME_TYPE
@@ -37,7 +38,7 @@ object MediaFactory {
 
         return cursorRef.use { cursor ->
             if (!cursor.moveToFirst()) {
-                throw IllegalStateException()
+                throw IllegalStateException("cursor should have one element")
             }
 
             val mimeTypeIndex = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.MIME_TYPE)
@@ -51,6 +52,7 @@ object MediaFactory {
         }
     }
 
+    @Suppress("ThrowsCount")
     private fun createPhotoMedia(
         contentResolver: ContentResolver,
         uri: Uri
@@ -89,6 +91,7 @@ object MediaFactory {
         }
     }
 
+    @Suppress("ThrowsCount")
     private fun createVideoMedia(
         contentResolver: ContentResolver,
         uri: Uri
@@ -104,7 +107,7 @@ object MediaFactory {
 
         return cursorRef.use { cursor ->
             if (!cursor.moveToFirst()) {
-                throw IllegalStateException()
+                throw IllegalStateException("cursor should have one element")
             }
 
             val titleColumn = cursor.getColumnIndex(MediaStore.Video.VideoColumns.TITLE)

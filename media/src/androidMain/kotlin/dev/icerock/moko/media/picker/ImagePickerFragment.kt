@@ -17,27 +17,33 @@ import java.io.File
 
 class ImagePickerFragment : Fragment() {
     init {
+        @Suppress("DEPRECATION")
         retainInstance = true
     }
 
     private val codeCallbackMap = mutableMapOf<Int, CallbackData>()
 
-    private var maxImageWidth = DEFAULT_MAX_IMAGE_WIDTH
-    private var maxImageHeight = DEFAULT_MAX_IMAGE_HEIGHT
+    private val maxImageWidth
+        get() =
+            arguments?.getInt(ARG_IMG_MAX_WIDTH, DEFAULT_MAX_IMAGE_WIDTH)
+                ?: DEFAULT_MAX_IMAGE_WIDTH
+    private val maxImageHeight
+        get() =
+            arguments?.getInt(ARG_IMG_MAX_HEIGHT, DEFAULT_MAX_IMAGE_HEIGHT)
+                ?: DEFAULT_MAX_IMAGE_HEIGHT
 
     private var photoFilePath: String? = null
 
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
-        maxImageWidth = arguments?.getInt(ARG_IMG_MAX_WIDTH, DEFAULT_MAX_IMAGE_WIDTH)
-            ?: DEFAULT_MAX_IMAGE_WIDTH
-        maxImageHeight = arguments?.getInt(ARG_IMG_MAX_HEIGHT, DEFAULT_MAX_IMAGE_HEIGHT)
-            ?: DEFAULT_MAX_IMAGE_HEIGHT
-        photoFilePath = savedInstanceState?.getString(PHOTO_FILE_PATH_KEY)
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+
+        outState.putString(PHOTO_FILE_PATH_KEY, photoFilePath)
     }
 
-    override fun onSaveInstanceState(outState: Bundle) {
-        outState.putString(PHOTO_FILE_PATH_KEY, photoFilePath)
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        photoFilePath = savedInstanceState?.getString(PHOTO_FILE_PATH_KEY)
     }
 
     fun pickGalleryImage(callback: (Result<android.graphics.Bitmap>) -> Unit) {
@@ -111,6 +117,7 @@ class ImagePickerFragment : Fragment() {
         }
     }
 
+    @Suppress("ReturnCount")
     private fun processResult(
         callback: (Result<android.graphics.Bitmap>) -> Unit,
         uri: Uri

@@ -6,7 +6,6 @@ package dev.icerock.moko.media.picker
 
 import android.app.Activity
 import android.content.Intent
-import android.os.Bundle
 import androidx.fragment.app.Fragment
 import dev.icerock.moko.media.Media
 import dev.icerock.moko.media.MediaFactory
@@ -16,11 +15,12 @@ class MediaPickerFragment : Fragment() {
     private val codeCallbackMap = mutableMapOf<Int, CallbackData>()
 
     init {
+        @Suppress("DEPRECATION")
         retainInstance = true
     }
 
     fun pickVideo(callback: (Result<Media>) -> Unit) {
-        val requestCode = codeCallbackMap.keys.sorted().lastOrNull() ?: 0
+        val requestCode = codeCallbackMap.keys.maxOrNull() ?: 0
 
         codeCallbackMap[requestCode] = CallbackData(callback)
 
@@ -33,7 +33,7 @@ class MediaPickerFragment : Fragment() {
     }
 
     fun pickMedia(callback: (Result<Media>) -> Unit) {
-        val requestCode = codeCallbackMap.keys.sorted().lastOrNull() ?: 0
+        val requestCode = codeCallbackMap.keys.maxOrNull() ?: 0
 
         codeCallbackMap[requestCode] = CallbackData(callback)
 
@@ -61,6 +61,7 @@ class MediaPickerFragment : Fragment() {
         processResult(callback, data)
     }
 
+    @Suppress("ReturnCount")
     private fun processResult(
         callback: (Result<Media>) -> Unit,
         intent: Intent?

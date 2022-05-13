@@ -13,6 +13,7 @@ import java.io.InputStream
 
 object BitmapUtils {
 
+    @Suppress("ForbiddenComment")
     // TODO: unused
     @Throws(IOException::class)
     fun getAngle(filename: String): Int {
@@ -20,6 +21,7 @@ object BitmapUtils {
         val orientation =
             exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL)
 
+        @Suppress("MagicNumber")
         return when (orientation) {
             ExifInterface.ORIENTATION_ROTATE_90 -> 90
             ExifInterface.ORIENTATION_ROTATE_180 -> 180
@@ -51,6 +53,7 @@ object BitmapUtils {
             ?: throw IOException("Can't decode bitmap stream")
 
         val matrix = Matrix()
+        @Suppress("MagicNumber")
         when (orientation) {
             ExifInterface.ORIENTATION_ROTATE_90 -> matrix.setRotate(90f)
             ExifInterface.ORIENTATION_ROTATE_180 -> matrix.setRotate(180f)
@@ -72,6 +75,7 @@ object BitmapUtils {
         return result
     }
 
+    @Suppress("ForbiddenComment")
     // TODO: unused
     fun cloneRotated(bitmap: Bitmap, angle: Int): Bitmap {
         if (angle != 0) {
@@ -106,6 +110,7 @@ object BitmapUtils {
         }
     }
 
+    @Suppress("ForbiddenComment")
     // TODO: unused
     fun getBitmapForStream(
         inputStream: InputStream,
