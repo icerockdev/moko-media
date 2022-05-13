@@ -11,7 +11,48 @@ plugins {
 
 kotlin {
     android {
-        publishLibraryVariants("release", "debug")
+        publishAllLibraryVariants()
+        publishLibraryVariantsGroupedByFlavor = true
     }
-    ios()
+    iosArm64()
+    iosX64()
+    iosSimulatorArm64()
+
+    sourceSets {
+        val commonMain by getting
+        val commonTest by getting
+
+        // ios source sets
+        val iosMain by creating
+        val iosTest by creating
+
+        iosMain.dependsOn(commonMain)
+        iosTest.dependsOn(commonTest)
+
+        with(listOf("iosArm64", "iosX64", "iosSimulatorArm64")) {
+            map { "${it}Main" }.forEach { getByName(it).dependsOn(iosMain) }
+            map { "${it}Test" }.forEach { getByName(it).dependsOn(iosTest) }
+        }
+
+        // mobile source sets
+        val mobileMain by creating
+        val mobileTest by creating
+        val androidMain by getting
+        val androidTest by getting
+
+        mobileMain.dependsOn(commonMain)
+        mobileTest.dependsOn(commonTest)
+
+        androidMain.dependsOn(mobileMain)
+        androidTest.dependsOn(mobileTest)
+
+        iosMain.dependsOn(mobileMain)
+        iosTest.dependsOn(mobileTest)
+
+        all {
+            languageSettings {
+                optIn("kotlin.RequiresOptIn")
+            }
+        }
+    }
 }
