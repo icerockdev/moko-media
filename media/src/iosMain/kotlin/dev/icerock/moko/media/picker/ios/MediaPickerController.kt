@@ -15,23 +15,25 @@ import dev.icerock.moko.media.picker.ImagePickerDelegateToContinuation
 import dev.icerock.moko.media.picker.MediaSource
 import dev.icerock.moko.permissions.Permission
 import dev.icerock.moko.permissions.PermissionsController
+import platform.CoreServices.kUTTypeData
 import platform.CoreServices.kUTTypeImage
 import platform.CoreServices.kUTTypeMovie
 import platform.CoreServices.kUTTypeVideo
 import platform.Foundation.CFBridgingRelease
+import platform.UIKit.UIDocumentPickerMode
 import platform.UIKit.UIDocumentPickerViewController
 import platform.UIKit.UIImagePickerController
 import platform.UIKit.UIImagePickerControllerSourceType
 import platform.UIKit.UIViewController
-import kotlin.coroutines.suspendCoroutine
-import platform.CoreServices.kUTTypeData
-import platform.UIKit.UIDocumentPickerMode
 import platform.UIKit.presentationController
+import kotlin.coroutines.suspendCoroutine
 
 class MediaPickerController(
     override val permissionsController: PermissionsController,
     private val getViewController: () -> UIViewController
 ) : MediaPickerControllerProtocol {
+
+    @Suppress("unused")
     constructor(
         permissionsController: PermissionsController,
         viewController: UIViewController
@@ -51,11 +53,14 @@ class MediaPickerController(
 
         @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
         var delegatePtr: ImagePickerDelegateToContinuation? // strong reference to delegate (view controller have weak ref)
-        var presentationDelegate: AdaptivePresentationDelegateToContinuation?
+
+        @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+        var presentationDelegate: AdaptivePresentationDelegateToContinuation? // strong reference too
         val media = suspendCoroutine<Media> { continuation ->
             val localDelegatePtr = ImagePickerDelegateToContinuation(continuation)
             delegatePtr = localDelegatePtr
-            val localPresentationDelegatePtr = AdaptivePresentationDelegateToContinuation(continuation)
+            val localPresentationDelegatePtr =
+                AdaptivePresentationDelegateToContinuation(continuation)
             presentationDelegate = localPresentationDelegatePtr
 
             val controller = UIImagePickerController()
@@ -75,23 +80,27 @@ class MediaPickerController(
     }
 
     override suspend fun pickFiles(): FileMedia {
+        @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
         var delegatePtr: DocumentPickerDelegateToContinuation? // strong reference to delegate (view controller have weak ref)
-        var presentationDelegate: AdaptivePresentationDelegateToContinuation?
+
+        @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+        var presentationDelegate: AdaptivePresentationDelegateToContinuation? // strong reference too
         val fileMedia = suspendCoroutine<FileMedia> { continuation ->
             val localDelegatePtr = DocumentPickerDelegateToContinuation(continuation)
             delegatePtr = localDelegatePtr
-            val localPresentationDelegatePtr = AdaptivePresentationDelegateToContinuation(continuation)
+            val localPresentationDelegatePtr =
+                AdaptivePresentationDelegateToContinuation(continuation)
             presentationDelegate = localPresentationDelegatePtr
 
             val controller = UIDocumentPickerViewController(
-                    documentTypes = listOf(kStandardFileTypesId),
-                    inMode = UIDocumentPickerMode.UIDocumentPickerModeImport
+                documentTypes = listOf(kStandardFileTypesId),
+                inMode = UIDocumentPickerMode.UIDocumentPickerModeImport
             )
             controller.delegate = localDelegatePtr
             getViewController().presentViewController(
-                    controller,
-                    animated = true,
-                    completion = null
+                controller,
+                animated = true,
+                completion = null
             )
             controller.presentationController?.delegate = localPresentationDelegatePtr
         }

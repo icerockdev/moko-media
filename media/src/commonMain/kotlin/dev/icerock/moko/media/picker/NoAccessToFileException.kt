@@ -4,4 +4,4 @@
 
 package dev.icerock.moko.media.picker
 
-class NoAccessToFileException(path: String) : Exception("no access to $path")
+class NoAccessToFileException(path: String) : RuntimeException("no access to $path")

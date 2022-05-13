@@ -30,6 +30,7 @@ class ImageSelectionViewModel(
     @Suppress("TooGenericExceptionCaught")
     fun selectFile() {
         viewModelScope.launch {
+            @Suppress("SwallowedException")
             try {
                 val file = mediaPickerController.pickFiles()
                 _textState.value = file.name
@@ -44,6 +45,7 @@ class ImageSelectionViewModel(
     @Suppress("TooGenericExceptionCaught")
     private fun selectImage(source: MediaSource) {
         viewModelScope.launch {
+            @Suppress("SwallowedException")
             try {
                 val image = mediaPickerController.pickImage(source)
                 _selectedImage.value = image

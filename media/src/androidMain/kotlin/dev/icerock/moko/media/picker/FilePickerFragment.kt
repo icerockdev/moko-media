@@ -8,20 +8,21 @@ import android.app.Activity
 import android.content.Intent
 import android.os.Environment
 import androidx.fragment.app.Fragment
+import com.nbsp.materialfilepicker.MaterialFilePicker
 import com.nbsp.materialfilepicker.ui.FilePickerActivity
 import dev.icerock.moko.media.FileMedia
 import java.io.File
-import com.nbsp.materialfilepicker.MaterialFilePicker
 
 class FilePickerFragment : Fragment() {
     init {
+        @Suppress("DEPRECATION")
         retainInstance = true
     }
 
     private val codeCallbackMap = mutableMapOf<Int, CallbackData>()
 
     fun pickFile(callback: (Result<FileMedia>) -> Unit) {
-        val requestCode = codeCallbackMap.keys.sorted().lastOrNull() ?: 0
+        val requestCode = codeCallbackMap.keys.maxOrNull() ?: 0
 
         codeCallbackMap[requestCode] = CallbackData(callback)
 

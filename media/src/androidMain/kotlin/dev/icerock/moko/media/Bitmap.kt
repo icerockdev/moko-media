@@ -41,6 +41,7 @@ actual class Bitmap constructor(
 
         override fun getByteArray(): ByteArray {
             val byteArrayOutputStream = ByteArrayOutputStream()
+            @Suppress("MagicNumber")
             bitmap.compress(
                 android.graphics.Bitmap.CompressFormat.PNG,
                 100,
