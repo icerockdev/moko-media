@@ -4,12 +4,11 @@
 
 package dev.icerock.moko.media.picker
 
-import android.app.Activity
-import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
-import android.provider.MediaStore
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import dev.icerock.moko.media.BitmapUtils
@@ -34,6 +33,37 @@ class ImagePickerFragment : Fragment() {
 
     private var photoFilePath: String? = null
 
+    private val galleryImageResult = registerForActivityResult(ActivityResultContracts.PickVisualMedia()){ result ->
+        val callbackData = codeCallbackMap[0] ?: return@registerForActivityResult
+        codeCallbackMap.remove(0)
+
+        val callback = callbackData.callback
+
+        if (result == null) {
+            callback.invoke(Result.failure(CanceledException()))
+            return@registerForActivityResult
+        }
+
+        processResult(callback, result)
+    }
+
+    private val cameraImageResult = registerForActivityResult(ActivityResultContracts.TakePicture()){ result ->
+        val callbackData = codeCallbackMap[0] ?: return@registerForActivityResult
+        codeCallbackMap.remove(0)
+
+        if (callbackData !is CallbackData.Camera){
+            callbackData.callback.invoke(Result.failure(java.lang.IllegalStateException()))
+            return@registerForActivityResult
+        }
+
+        if (!result){
+            callbackData.callback.invoke(Result.failure(CanceledException()))
+            return@registerForActivityResult
+        }
+
+        processResult(callbackData.callback, callbackData.outputUri)
+    }
+
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
 
@@ -54,11 +84,9 @@ class ImagePickerFragment : Fragment() {
                 callback
             )
 
-        val intent = Intent(
-            Intent.ACTION_PICK,
-            MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+        galleryImageResult.launch(
+            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
         )
-        startActivityForResult(intent, requestCode)
     }
 
     fun pickCameraImage(callback: (Result<android.graphics.Bitmap>) -> Unit) {
@@ -71,9 +99,7 @@ class ImagePickerFragment : Fragment() {
                 outputUri
             )
 
-        val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-            .putExtra(MediaStore.EXTRA_OUTPUT, outputUri)
-        startActivityForResult(intent, requestCode)
+        cameraImageResult.launch(outputUri)
     }
 
     private fun createPhotoUri(): Uri {
@@ -87,34 +113,6 @@ class ImagePickerFragment : Fragment() {
             context.applicationContext.packageName + FILE_PROVIDER_SUFFIX,
             tmpFile
         )
-    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-
-        val callbackData = codeCallbackMap[requestCode] ?: return
-        codeCallbackMap.remove(requestCode)
-
-        val callback = callbackData.callback
-
-        if (resultCode == Activity.RESULT_CANCELED) {
-            callback.invoke(Result.failure(CanceledException()))
-            return
-        }
-
-        when (callbackData) {
-            is CallbackData.Gallery -> {
-                val uri = data?.data
-                if (uri != null) {
-                    processResult(callback, uri)
-                } else {
-                    callback.invoke(Result.failure(IllegalArgumentException(data?.toString())))
-                }
-            }
-            is CallbackData.Camera -> {
-                processResult(callback, callbackData.outputUri)
-            }
-        }
     }
 
     @Suppress("ReturnCount")

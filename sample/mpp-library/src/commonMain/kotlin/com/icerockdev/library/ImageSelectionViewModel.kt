@@ -20,7 +20,7 @@ class ImageSelectionViewModel(
     val textState: LiveData<String> = _textState.readOnly()
 
     fun onCameraPressed() {
-        selectImage(MediaSource.CAMERA)
+        selectMedia()
     }
 
     fun onGalleryPressed() {
@@ -55,6 +55,22 @@ class ImageSelectionViewModel(
             } catch (exc: Exception) {
                 exc.printStackTrace()
                 _selectedImage.value = null
+                _textState.value = exc.toString()
+            }
+        }
+    }
+
+    @Suppress("TooGenericExceptionCaught")
+    private fun selectMedia() {
+        viewModelScope.launch {
+            @Suppress("SwallowedException")
+            try {
+                val image = mediaPickerController.pickMedia()
+                _textState.value = image.path
+            } catch (canceled: CanceledException) {
+                _textState.value = "canceled"
+            } catch (exc: Exception) {
+                exc.printStackTrace()
                 _textState.value = exc.toString()
             }
         }

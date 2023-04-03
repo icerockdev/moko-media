@@ -15,6 +15,7 @@ dependencies {
 
     androidMainImplementation(libs.appCompat)
     androidMainImplementation(libs.exifInterface)
+    androidMainImplementation(libs.activity)
 
     // TODO #34 remove external dependency
     androidMainImplementation(libs.mediaFilePicker)
