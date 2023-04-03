@@ -20,7 +20,7 @@ class ImageSelectionViewModel(
     val textState: LiveData<String> = _textState.readOnly()
 
     fun onCameraPressed() {
-        selectMedia()
+        selectImage(MediaSource.CAMERA)
     }
 
     fun onGalleryPressed() {
