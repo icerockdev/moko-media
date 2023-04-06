@@ -49,7 +49,20 @@ class FilePickerFragment : Fragment() {
             uri.path?.let { path ->
                 val file = File(path)
                 val name = file.name
-                callback(Result.success(FileMedia(fileNameWithExtension ?: name, path)))
+                val byteArray = requireContext()
+                    .contentResolver
+                    .openInputStream(uri)
+                    ?.readBytes() ?: ByteArray(0)
+
+                callback(
+                    Result.success(
+                        FileMedia(
+                            fileNameWithExtension ?: name,
+                            uri.toString(),
+                            byteArray
+                        )
+                    )
+                )
             }
         }
 

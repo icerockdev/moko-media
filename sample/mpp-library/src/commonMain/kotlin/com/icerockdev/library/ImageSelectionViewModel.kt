@@ -32,11 +32,15 @@ class ImageSelectionViewModel(
         viewModelScope.launch {
             @Suppress("SwallowedException")
             try {
-                val file = mediaPickerController.pickFiles()
-                _textState.value = file.name
+                val fileMedia = mediaPickerController.pickFiles()
+                _textState.value = "fileMedia:" +
+                        " ${fileMedia.name}," +
+                        " ${fileMedia.path}," +
+                        " ${fileMedia.byteArray.size}"
             } catch (canceled: CanceledException) {
                 _textState.value = "canceled"
             } catch (exc: Exception) {
+                exc.printStackTrace()
                 _textState.value = exc.toString()
             }
         }
