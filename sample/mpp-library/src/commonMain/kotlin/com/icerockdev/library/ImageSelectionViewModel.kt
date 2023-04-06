@@ -20,7 +20,7 @@ class ImageSelectionViewModel(
     val textState: LiveData<String> = _textState.readOnly()
 
     fun onCameraPressed() {
-        selectImage(MediaSource.CAMERA)
+        selectFile()
     }
 
     fun onGalleryPressed() {
@@ -66,7 +66,8 @@ class ImageSelectionViewModel(
             @Suppress("SwallowedException")
             try {
                 val image = mediaPickerController.pickMedia()
-                _textState.value = image.path
+                _textState.value = image.name
+                _selectedImage.value = image.preview
             } catch (canceled: CanceledException) {
                 _textState.value = "canceled"
             } catch (exc: Exception) {

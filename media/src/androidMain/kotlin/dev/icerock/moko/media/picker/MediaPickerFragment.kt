@@ -4,6 +4,7 @@
 
 package dev.icerock.moko.media.picker
 
+import android.annotation.SuppressLint
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
@@ -19,6 +20,7 @@ class MediaPickerFragment : Fragment() {
         retainInstance = true
     }
 
+    @SuppressLint("Range")
     private val mediaPicker = registerForActivityResult(ActivityResultContracts.PickVisualMedia()){ uri ->
         val callbackData = codeCallbackMap[0] ?: return@registerForActivityResult
         codeCallbackMap.remove(0)

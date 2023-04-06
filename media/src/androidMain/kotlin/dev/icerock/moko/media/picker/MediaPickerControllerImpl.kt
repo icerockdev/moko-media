@@ -58,16 +58,15 @@ internal class MediaPickerControllerImpl(
         }
 
         val currentFragment: Fragment? = fragmentManager.findFragmentByTag(pickerFragmentTag)
-        val imagePickerFragment: ImagePickerFragment = if (currentFragment != null) {
-            currentFragment as ImagePickerFragment
-        } else {
-            ImagePickerFragment.newInstance(maxWidth, maxHeight).also {
-                fragmentManager
-                    .beginTransaction()
-                    .add(it, pickerFragmentTag)
-                    .commitNow()
-            }
-        }
+        val imagePickerFragment: ImagePickerFragment =
+            if (currentFragment !is ImagePickerFragment) {
+                ImagePickerFragment.newInstance(maxWidth, maxHeight).also {
+                    fragmentManager
+                        .beginTransaction()
+                        .add(it, pickerFragmentTag)
+                        .commitNow()
+                }
+            } else currentFragment
 
         val bitmap = suspendCoroutine<android.graphics.Bitmap> { continuation ->
             val action: (Result<android.graphics.Bitmap>) -> Unit = { continuation.resumeWith(it) }
@@ -87,16 +86,14 @@ internal class MediaPickerControllerImpl(
         permissionsController.providePermission(Permission.GALLERY)
 
         val currentFragment: Fragment? = fragmentManager.findFragmentByTag(pickerFragmentTag)
-        val pickerFragment: MediaPickerFragment = if (currentFragment != null) {
-            currentFragment as MediaPickerFragment
-        } else {
+        val pickerFragment: MediaPickerFragment = if (currentFragment !is MediaPickerFragment) {
             MediaPickerFragment().apply {
                 fragmentManager
                     .beginTransaction()
                     .add(this, pickerFragmentTag)
                     .commitNow()
             }
-        }
+        } else currentFragment
 
         return suspendCoroutine { continuation ->
             val action: (Result<Media>) -> Unit = { continuation.resumeWith(it) }
@@ -111,16 +108,14 @@ internal class MediaPickerControllerImpl(
         permissionsController.providePermission(Permission.STORAGE)
 
         val currentFragment: Fragment? = fragmentManager.findFragmentByTag(filePickerFragmentTag)
-        val pickerFragment: FilePickerFragment = if (currentFragment != null) {
-            currentFragment as FilePickerFragment
-        } else {
+        val pickerFragment: FilePickerFragment = if (currentFragment !is FilePickerFragment) {
             FilePickerFragment().apply {
                 fragmentManager
                     .beginTransaction()
                     .add(this, pickerFragmentTag)
                     .commitNow()
             }
-        }
+        } else currentFragment
 
         val path = suspendCoroutine<FileMedia> { continuation ->
             val action: (Result<FileMedia>) -> Unit = { continuation.resumeWith(it) }

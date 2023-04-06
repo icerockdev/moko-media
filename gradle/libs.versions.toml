@@ -10,7 +10,7 @@ coroutinesVersion = "1.6.0-native-mt"
 mokoMvvmVersion = "0.13.0"
 mokoPermissionsVersion = "0.11.0"
 mokoTestVersion = "0.6.1"
-mokoMediaVersion = "0.10.0"
+mokoMediaVersion = "0.10.2"
 
 [libraries]
 appCompat = { module = "androidx.appcompat:appcompat", version.ref = "androidAppCompatVersion" }
