@@ -27,21 +27,38 @@ import platform.UIKit.UIImagePickerControllerSourceType
 import platform.UIKit.UIViewController
 import platform.UIKit.presentationController
 import kotlin.coroutines.suspendCoroutine
+import kotlin.native.ref.WeakReference
 
 class MediaPickerController(
-    override val permissionsController: PermissionsController,
-    private val getViewController: () -> UIViewController
+    override val permissionsController: PermissionsController
 ) : MediaPickerControllerProtocol {
     private val strongRefs: MutableSet<Any> = mutableSetOf()
+    private lateinit var getViewController: () -> UIViewController
 
     @Suppress("unused")
     constructor(
         permissionsController: PermissionsController,
         viewController: UIViewController
     ) : this(
-        permissionsController = permissionsController,
-        getViewController = { viewController }
-    )
+        permissionsController = permissionsController
+    ) {
+        bind(viewController)
+    }
+
+    @Suppress("unused")
+    constructor(
+        permissionsController: PermissionsController,
+        getViewController: () -> UIViewController
+    ) : this(
+        permissionsController = permissionsController
+    ) {
+        this.getViewController = getViewController
+    }
+
+    override fun bind(viewController: UIViewController) {
+        val weakRef: WeakReference<UIViewController> = WeakReference(viewController)
+        this.getViewController = { weakRef.get() ?: error("viewController was deallocated") }
+    }
 
     override suspend fun pickImage(source: MediaSource): Bitmap {
         return pickImage(source, DEFAULT_MAX_IMAGE_WIDTH, DEFAULT_MAX_IMAGE_HEIGHT)
