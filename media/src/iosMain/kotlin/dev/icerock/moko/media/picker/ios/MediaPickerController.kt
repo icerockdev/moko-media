@@ -76,32 +76,28 @@ class MediaPickerController(
     }
 
     override suspend fun pickFiles(): FileMedia {
-        @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-        var delegatePtr: DocumentPickerDelegateToContinuation? // strong reference to delegate (view controller have weak ref)
+        val refs: MutableSet<Any> = mutableSetOf()
+        strongRefs.add(refs)
 
-        @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-        var presentationDelegate: AdaptivePresentationDelegateToContinuation? // strong reference too
-        val fileMedia = suspendCoroutine<FileMedia> { continuation ->
-            val localDelegatePtr = DocumentPickerDelegateToContinuation(continuation)
-            delegatePtr = localDelegatePtr
-            val localPresentationDelegatePtr =
-                AdaptivePresentationDelegateToContinuation(continuation)
-            presentationDelegate = localPresentationDelegatePtr
-
+        val fileMedia: FileMedia = suspendCoroutine { continuation ->
             val controller = UIDocumentPickerViewController(
                 documentTypes = listOf(kStandardFileTypesId),
                 inMode = UIDocumentPickerMode.UIDocumentPickerModeImport
             )
-            controller.delegate = localDelegatePtr
+            controller.delegate = DocumentPickerDelegateToContinuation(continuation).also {
+                refs.add(it)
+            }
             getViewController().presentViewController(
                 controller,
                 animated = true,
                 completion = null
             )
-            controller.presentationController?.delegate = localPresentationDelegatePtr
+            controller.presentationController?.delegate =
+                AdaptivePresentationDelegateToContinuation(continuation).also {
+                    refs.add(it)
+                }
         }
-        delegatePtr = null
-        presentationDelegate = null
+        strongRefs.remove(refs)
         return fileMedia
     }
 
@@ -120,24 +116,24 @@ class MediaPickerController(
     override suspend fun pickMedia(): Media {
         permissionsController.providePermission(Permission.GALLERY)
 
-        @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-        var delegatePtr: ImagePickerDelegateToContinuation? // strong reference to delegate (view controller have weak ref)
-        val media = suspendCoroutine<Media> { continuation ->
-            val localDelegatePtr = ImagePickerDelegateToContinuation(continuation)
-            delegatePtr = localDelegatePtr
+        val refs: MutableSet<Any> = mutableSetOf()
+        strongRefs.add(refs)
 
+        val media: Media = suspendCoroutine { continuation ->
             val controller = UIImagePickerController()
             controller.sourceType =
                 UIImagePickerControllerSourceType.UIImagePickerControllerSourceTypePhotoLibrary
             controller.mediaTypes = listOf(kImageType, kVideoType, kMovieType)
-            controller.delegate = localDelegatePtr
+            controller.delegate = ImagePickerDelegateToContinuation(continuation).also {
+                refs.add(it)
+            }
             getViewController().presentViewController(
                 controller,
                 animated = true,
                 completion = null
             )
         }
-        delegatePtr = null
+        strongRefs.remove(refs)
 
         return media
     }
