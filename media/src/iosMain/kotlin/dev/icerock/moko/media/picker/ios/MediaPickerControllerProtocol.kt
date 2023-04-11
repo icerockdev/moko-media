@@ -8,19 +8,13 @@ import dev.icerock.moko.media.Bitmap
 import dev.icerock.moko.media.FileMedia
 import dev.icerock.moko.media.Media
 import dev.icerock.moko.media.picker.MediaSource
-import dev.icerock.moko.permissions.Permission
 import dev.icerock.moko.permissions.PermissionsController
-import platform.CoreServices.kUTTypeImage
-import platform.CoreServices.kUTTypeMovie
-import platform.CoreServices.kUTTypeVideo
-import platform.Foundation.CFBridgingRelease
-import platform.UIKit.UIImagePickerController
-import platform.UIKit.UIImagePickerControllerSourceType
 import platform.UIKit.UIViewController
-import kotlin.coroutines.suspendCoroutine
 
 interface MediaPickerControllerProtocol {
     val permissionsController: PermissionsController
+
+    fun bind(viewController: UIViewController)
 
     suspend fun pickImage(source: MediaSource): Bitmap
     suspend fun pickImage(source: MediaSource, maxWidth: Int, maxHeight: Int): Bitmap

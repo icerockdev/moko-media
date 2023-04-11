@@ -5,7 +5,13 @@
 package dev.icerock.moko.media.player
 
 import kotlinx.cinterop.cValue
-import platform.AVFoundation.*
+import platform.AVFoundation.AVPlayer
+import platform.AVFoundation.AVPlayerItemDidPlayToEndTimeNotification
+import platform.AVFoundation.AVPlayerTimeControlStatusPlaying
+import platform.AVFoundation.pause
+import platform.AVFoundation.play
+import platform.AVFoundation.seekToTime
+import platform.AVFoundation.timeControlStatus
 import platform.AVKit.AVPlayerViewController
 import platform.Foundation.NSNotificationCenter
 import platform.Foundation.NSOperationQueue

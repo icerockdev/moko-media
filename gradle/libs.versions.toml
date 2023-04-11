@@ -1,15 +1,16 @@
 [versions]
-kotlinVersion = "1.6.21"
-androidAppCompatVersion = "1.3.1"
-materialDesignVersion = "1.4.0"
+kotlinVersion = "1.8.10"
+androidAppCompatVersion = "1.6.1"
+materialDesignVersion = "1.8.0"
 androidLifecycleVersion = "2.3.1"
-androidExifInterface = "1.3.2"
+androidExifInterface = "1.3.6"
 androidMediaFilePicker = "1.9.1"
-coroutinesVersion = "1.6.0-native-mt"
-mokoMvvmVersion = "0.13.0"
-mokoPermissionsVersion = "0.11.0"
+coroutinesVersion = "1.6.4"
+mokoMvvmVersion = "0.16.0"
+mokoPermissionsVersion = "0.15.0"
 mokoTestVersion = "0.6.1"
-mokoMediaVersion = "0.10.0"
+mokoMediaVersion = "0.11.0"
+composeJetBrainsVersion = "1.3.1"
 
 [libraries]
 appCompat = { module = "androidx.appcompat:appcompat", version.ref = "androidAppCompatVersion" }
@@ -18,14 +19,20 @@ lifecycle = { module = "androidx.lifecycle:lifecycle-extensions", version.ref = 
 exifInterface = { module = "androidx.exifinterface:exifinterface", version.ref = "androidExifInterface" }
 mediaFilePicker = { module = "com.github.icerockdev:MaterialFilePicker", version.ref = "androidMediaFilePicker" }
 coroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutinesVersion" }
+
 mokoPermissions = { module = "dev.icerock.moko:permissions", version.ref = "mokoPermissionsVersion" }
+mokoPermissionsCompose = { module = "dev.icerock.moko:permissions-compose", version.ref = "mokoPermissionsVersion" }
+
 mokoMvvmCore = { module = "dev.icerock.moko:mvvm-core", version.ref = "mokoMvvmVersion" }
 mokoMvvmLiveData = { module = "dev.icerock.moko:mvvm-livedata", version.ref = "mokoMvvmVersion" }
+
 mokoTest = { module = "dev.icerock.moko:test-core", version.ref = "mokoTestVersion" }
 mokoMvvmTest = { module = "dev.icerock.moko:mvvm-test", version.ref = "mokoMvvmVersion" }
 mokoPermissionsTest = { module = "dev.icerock.moko:permissions-test", version.ref = "mokoPermissionsVersion" }
 
 kotlinGradlePlugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlinVersion" }
-androidGradlePlugin = { module = "com.android.tools.build:gradle", version = "7.2.0" }
-mokoGradlePlugin = { module = "dev.icerock.moko:moko-gradle-plugin", version = "0.1.0" }
-mobileMultiplatformGradlePlugin = { module = "dev.icerock:mobile-multiplatform", version = "0.14.1" }
+androidGradlePlugin = { module = "com.android.tools.build:gradle", version = "7.4.2" }
+mokoGradlePlugin = { module = "dev.icerock.moko:moko-gradle-plugin", version = "0.2.0" }
+mobileMultiplatformGradlePlugin = { module = "dev.icerock:mobile-multiplatform", version = "0.14.2" }
+composeJetBrainsGradlePlugin = { module = "org.jetbrains.compose:compose-gradle-plugin", version.ref = "composeJetBrainsVersion" }
+detektGradlePlugin = { module = "io.gitlab.arturbosch.detekt:detekt-gradle-plugin", version = "1.22.0" }

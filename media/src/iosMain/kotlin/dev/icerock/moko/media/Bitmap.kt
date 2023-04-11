@@ -21,7 +21,7 @@ import platform.UIKit.UIImageJPEGRepresentation
 actual class Bitmap(val image: UIImage) {
 
     actual fun toByteArray(): ByteArray {
-        val imageData = UIImageJPEGRepresentation(image, 0.99)
+        val imageData = UIImageJPEGRepresentation(image, COMPRESSION_QUALITY)
             ?: throw IllegalArgumentException("image data is null")
         val bytes = imageData.bytes ?: throw IllegalArgumentException("image bytes is null")
         val length = imageData.length
@@ -31,7 +31,7 @@ actual class Bitmap(val image: UIImage) {
     }
 
     actual fun toBase64(): String {
-        val imageData = UIImageJPEGRepresentation(image, 0.99)
+        val imageData = UIImageJPEGRepresentation(image, COMPRESSION_QUALITY)
             ?: throw IllegalArgumentException("image data is null")
 
         return imageData.base64EncodedStringWithOptions(0)
@@ -51,9 +51,13 @@ actual class Bitmap(val image: UIImage) {
         val newImage = UIGraphicsGetImageFromCurrentImageContext()
         UIGraphicsEndImageContext();
 
-        val imageData = UIImageJPEGRepresentation(newImage!!, 0.99)
+        val imageData = UIImageJPEGRepresentation(newImage!!, COMPRESSION_QUALITY)
             ?: throw IllegalArgumentException("image data is null")
 
         return imageData.base64EncodedStringWithOptions(0)
+    }
+
+    private companion object {
+        const val COMPRESSION_QUALITY = 0.99
     }
 }
