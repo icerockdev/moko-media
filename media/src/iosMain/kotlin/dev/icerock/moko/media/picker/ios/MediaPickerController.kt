@@ -32,6 +32,7 @@ class MediaPickerController(
     override val permissionsController: PermissionsController,
     private val getViewController: () -> UIViewController
 ) : MediaPickerControllerProtocol {
+    private val strongRefs: MutableSet<Any> = mutableSetOf()
 
     @Suppress("unused")
     constructor(
@@ -51,31 +52,26 @@ class MediaPickerController(
             permissionsController.providePermission(permission)
         }
 
-        @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-        var delegatePtr: ImagePickerDelegateToContinuation? // strong reference to delegate (view controller have weak ref)
-
-        @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-        var presentationDelegate: AdaptivePresentationDelegateToContinuation? // strong reference too
-        val media = suspendCoroutine<Media> { continuation ->
-            val localDelegatePtr = ImagePickerDelegateToContinuation(continuation)
-            delegatePtr = localDelegatePtr
-            val localPresentationDelegatePtr =
-                AdaptivePresentationDelegateToContinuation(continuation)
-            presentationDelegate = localPresentationDelegatePtr
-
+        val refs: MutableSet<Any> = mutableSetOf()
+        strongRefs.add(refs)
+        val media: Media = suspendCoroutine { continuation ->
             val controller = UIImagePickerController()
             controller.sourceType = source.toSourceType()
             controller.mediaTypes = listOf(kImageType)
-            controller.delegate = localDelegatePtr
+            controller.delegate = ImagePickerDelegateToContinuation(continuation).also {
+                refs.add(it)
+            }
             getViewController().presentViewController(
                 controller,
                 animated = true,
                 completion = null
             )
-            controller.presentationController?.delegate = localPresentationDelegatePtr
+            controller.presentationController?.delegate =
+                AdaptivePresentationDelegateToContinuation(continuation).also {
+                    refs.add(it)
+                }
         }
-        delegatePtr = null
-        presentationDelegate = null
+        strongRefs.remove(refs)
         return media.preview
     }
 
