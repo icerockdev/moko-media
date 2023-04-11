@@ -15,6 +15,7 @@ dependencyResolutionManagement {
 }
 
 include(":media")
+include(":media-compose")
 include(":media-test")
 include(":sample:android-app")
 include(":sample:mpp-library")

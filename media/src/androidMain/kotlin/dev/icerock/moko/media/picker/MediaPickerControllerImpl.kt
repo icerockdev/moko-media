@@ -51,7 +51,7 @@ internal class MediaPickerControllerImpl(
      */
     override suspend fun pickImage(source: MediaSource, maxWidth: Int, maxHeight: Int): Bitmap {
         val fragmentManager =
-            fragmentManager ?: throw IllegalStateException("can't pick image without active window")
+            fragmentManager ?: error("can't pick image without active window")
 
         source.requiredPermissions().forEach { permission ->
             permissionsController.providePermission(permission)
@@ -82,7 +82,7 @@ internal class MediaPickerControllerImpl(
 
     override suspend fun pickMedia(): Media {
         val fragmentManager =
-            fragmentManager ?: throw IllegalStateException("can't pick image without active window")
+            fragmentManager ?: error("can't pick image without active window")
 
         permissionsController.providePermission(Permission.GALLERY)
 
@@ -106,7 +106,7 @@ internal class MediaPickerControllerImpl(
 
     override suspend fun pickFiles(): FileMedia {
         val fragmentManager =
-            fragmentManager ?: throw IllegalStateException("can't pick image without active window")
+            fragmentManager ?: error("can't pick image without active window")
 
         permissionsController.providePermission(Permission.STORAGE)
 

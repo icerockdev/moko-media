@@ -10,10 +10,13 @@ import dev.icerock.moko.media.Media
 import dev.icerock.moko.media.picker.MediaPickerController
 import dev.icerock.moko.media.picker.MediaSource
 import dev.icerock.moko.permissions.PermissionsController
+import platform.UIKit.UIViewController
 
 actual open class MediaPickerControllerMock actual constructor(
     actual override val permissionsController: PermissionsController
 ) : MediaPickerController {
+    override fun bind(viewController: UIViewController) = Unit
+
     actual override suspend fun pickImage(source: MediaSource): Bitmap {
         TODO("Not yet implemented")
     }
