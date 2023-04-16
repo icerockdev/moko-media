@@ -40,7 +40,7 @@ object MediaFactory {
 
         return cursorRef.use { cursor ->
             if (!cursor.moveToFirst()) {
-                throw IllegalStateException("cursor should have one element")
+                error("cursor should have one element")
             }
 
             val mimeTypeIndex = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.MIME_TYPE)
@@ -66,7 +66,7 @@ object MediaFactory {
 
         return cursorRef.use { cursor ->
             if (!cursor.moveToFirst()) {
-                throw IllegalStateException("not found resource")
+                error("not found resource")
             }
 
             val orientation = contentResolver.openInputStream(uri)?.use {
@@ -99,7 +99,7 @@ object MediaFactory {
 
         return cursorRef.use { cursor ->
             if (!cursor.moveToFirst()) {
-                throw IllegalStateException("cursor should have one element")
+                error("cursor should have one element")
             }
 
             val title = cursor.getString(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME))

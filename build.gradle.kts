@@ -14,6 +14,8 @@ buildscript {
         classpath(libs.androidGradlePlugin)
         classpath(libs.mokoGradlePlugin)
         classpath(libs.mobileMultiplatformGradlePlugin)
+        classpath(libs.composeJetBrainsGradlePlugin)
+        classpath(libs.detektGradlePlugin)
     }
 }
 

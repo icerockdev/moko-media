@@ -35,6 +35,7 @@ internal class ImagePickerDelegateToContinuation constructor(
         continuation.resumeWith(Result.failure(CanceledException()))
     }
 
+    @Suppress("ReturnCount")
     override fun imagePickerController(
         picker: UIImagePickerController,
         didFinishPickingMediaWithInfo: Map<Any?, *>
@@ -50,7 +51,6 @@ internal class ImagePickerDelegateToContinuation constructor(
 
         picker.dismissViewControllerAnimated(true) {}
 
-        //TODO: Строковые константы могут отличаться в разных версиях. Хардкодить их нехорошо, CFBridgingRelease(kUTTypeVideo) возвращает неверный тип.
         val type = when (mediaType) {
             MediaPickerController.kMovieType, MediaPickerController.kVideoType -> MediaType.VIDEO
             MediaPickerController.kImageType -> MediaType.PHOTO
@@ -90,7 +90,7 @@ internal class ImagePickerDelegateToContinuation constructor(
         }
     }
 
-    //TODO: Стоит сделать асинхронно и придумать что делать с ошибкой
+    // Стоит сделать асинхронно и придумать что делать с ошибкой
     private fun fetchThumbnail(videoAsset: AVAsset): UIImage {
         val imageGenerator = AVAssetImageGenerator(
             asset = videoAsset
