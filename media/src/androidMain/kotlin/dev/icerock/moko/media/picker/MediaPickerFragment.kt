@@ -13,7 +13,7 @@ import dev.icerock.moko.media.MediaFactory
 
 class MediaPickerFragment : Fragment() {
 
-    private val codeCallbackMap = mutableMapOf<Int, CallbackData>()
+    private var callback: CallbackData? = null
 
     init {
         @Suppress("DEPRECATION")
@@ -22,8 +22,8 @@ class MediaPickerFragment : Fragment() {
 
     @SuppressLint("Range")
     private val mediaPicker = registerForActivityResult(ActivityResultContracts.PickVisualMedia()){ uri ->
-        val callbackData = codeCallbackMap[0] ?: return@registerForActivityResult
-        codeCallbackMap.remove(0)
+        val callbackData = callback ?: return@registerForActivityResult
+        callback = null
 
         val callback = callbackData.callback
 
@@ -45,9 +45,11 @@ class MediaPickerFragment : Fragment() {
     }
 
     fun pickVideo(callback: (Result<Media>) -> Unit) {
-        val requestCode = codeCallbackMap.keys.maxOrNull() ?: 0
-
-        codeCallbackMap[requestCode] = CallbackData(callback)
+        this.callback?.let {
+            it.callback.invoke(Result.failure(IllegalStateException("Callback should be null")))
+            this.callback = null
+        }
+        this.callback = CallbackData(callback)
 
         mediaPicker.launch(
             PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.VideoOnly)
@@ -55,9 +57,11 @@ class MediaPickerFragment : Fragment() {
     }
 
     fun pickMedia(callback: (Result<Media>) -> Unit) {
-        val requestCode = codeCallbackMap.keys.maxOrNull() ?: 0
-
-        codeCallbackMap[requestCode] = CallbackData(callback)
+        this.callback?.let {
+            it.callback.invoke(Result.failure(IllegalStateException("Callback should be null")))
+            this.callback = null
+        }
+        this.callback = CallbackData(callback)
 
         mediaPicker.launch(
             PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageAndVideo)

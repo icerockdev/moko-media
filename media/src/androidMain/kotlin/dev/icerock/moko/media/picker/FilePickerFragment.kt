@@ -18,13 +18,13 @@ class FilePickerFragment : Fragment() {
         retainInstance = true
     }
 
-    private val codeCallbackMap = mutableMapOf<Int, CallbackData>()
+    private var callback: CallbackData? = null
 
     @SuppressLint("Range")
     private val pickDocument =
         registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
-            val callbackData = codeCallbackMap[0] ?: return@registerForActivityResult
-            codeCallbackMap.remove(0)
+            val callbackData = callback ?: return@registerForActivityResult
+            callback = null
 
             val callback = callbackData.callback
 
@@ -52,7 +52,7 @@ class FilePickerFragment : Fragment() {
                 val byteArray = requireContext()
                     .contentResolver
                     .openInputStream(uri)
-                    ?.readBytes() ?: ByteArray(0)
+                    ?.readBytes() ?: return@registerForActivityResult
 
                 callback(
                     Result.success(
@@ -68,9 +68,12 @@ class FilePickerFragment : Fragment() {
 
 
     fun pickFile(callback: (Result<FileMedia>) -> Unit) {
-        val requestCode = codeCallbackMap.keys.maxOrNull() ?: 0
+        this.callback?.let {
+            it.callback.invoke(Result.failure(IllegalStateException("Callback should be null")))
+            this.callback = null
+        }
 
-        codeCallbackMap[requestCode] = CallbackData(callback)
+        this.callback = CallbackData(callback)
 
         pickDocument.launch(
             arrayOf(

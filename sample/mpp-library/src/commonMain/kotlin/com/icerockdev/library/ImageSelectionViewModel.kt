@@ -20,31 +20,27 @@ class ImageSelectionViewModel(
     val textState: LiveData<String> = _textState.readOnly()
 
     fun onCameraPressed() {
-        selectFile()
+        selectImage(MediaSource.CAMERA)
     }
 
     fun onGalleryPressed() {
         selectImage(MediaSource.GALLERY)
     }
 
-    @Suppress("TooGenericExceptionCaught")
-    fun selectFile() {
-        viewModelScope.launch {
-            @Suppress("SwallowedException")
-            try {
-                val fileMedia = mediaPickerController.pickFiles()
-                _textState.value = "fileMedia:" +
-                        " ${fileMedia.name}," +
-                        " ${fileMedia.path}," +
-                        " ${fileMedia.byteArray.size}"
-            } catch (canceled: CanceledException) {
-                _textState.value = "canceled"
-            } catch (exc: Exception) {
-                exc.printStackTrace()
-                _textState.value = exc.toString()
-            }
-        }
-    }
+//    @Suppress("TooGenericExceptionCaught")
+//    fun selectFile() {
+//        viewModelScope.launch {
+//            @Suppress("SwallowedException")
+//            try {
+//                val file = mediaPickerController.pickFiles()
+//                _textState.value = file.name
+//            } catch (canceled: CanceledException) {
+//                _textState.value = "canceled"
+//            } catch (exc: Exception) {
+//                _textState.value = exc.toString()
+//            }
+//        }
+//    }
 
     @Suppress("TooGenericExceptionCaught")
     private fun selectImage(source: MediaSource) {
@@ -64,20 +60,20 @@ class ImageSelectionViewModel(
         }
     }
 
-    @Suppress("TooGenericExceptionCaught")
-    private fun selectMedia() {
-        viewModelScope.launch {
-            @Suppress("SwallowedException")
-            try {
-                val image = mediaPickerController.pickMedia()
-                _textState.value = image.name
-                _selectedImage.value = image.preview
-            } catch (canceled: CanceledException) {
-                _textState.value = "canceled"
-            } catch (exc: Exception) {
-                exc.printStackTrace()
-                _textState.value = exc.toString()
-            }
-        }
-    }
+//    @Suppress("TooGenericExceptionCaught")
+//    private fun selectMedia() {
+//        viewModelScope.launch {
+//            @Suppress("SwallowedException")
+//            try {
+//                val image = mediaPickerController.pickMedia()
+//                _textState.value = image.name
+//                _selectedImage.value = image.preview
+//            } catch (canceled: CanceledException) {
+//                _textState.value = "canceled"
+//            } catch (exc: Exception) {
+//                exc.printStackTrace()
+//                _textState.value = exc.toString()
+//            }
+//        }
+//    }
 }

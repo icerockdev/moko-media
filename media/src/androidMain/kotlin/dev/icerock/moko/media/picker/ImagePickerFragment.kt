@@ -20,7 +20,7 @@ class ImagePickerFragment : Fragment() {
         retainInstance = true
     }
 
-    private val codeCallbackMap = mutableMapOf<Int, CallbackData>()
+    private var callback: CallbackData? = null
 
     private val maxImageWidth
         get() =
@@ -33,23 +33,23 @@ class ImagePickerFragment : Fragment() {
 
     private var photoFilePath: String? = null
 
-    private val galleryImageResult = registerForActivityResult(ActivityResultContracts.PickVisualMedia()){ result ->
-        val callbackData = codeCallbackMap[0] ?: return@registerForActivityResult
-        codeCallbackMap.remove(0)
+    private val galleryImageResult = registerForActivityResult(ActivityResultContracts.PickVisualMedia()){ uri ->
+        val callbackData = callback ?: return@registerForActivityResult
+        callback = null
 
         val callback = callbackData.callback
 
-        if (result == null) {
+        if (uri == null) {
             callback.invoke(Result.failure(CanceledException()))
             return@registerForActivityResult
         }
 
-        processResult(callback, result)
+        processResult(callback, uri)
     }
 
     private val cameraImageResult = registerForActivityResult(ActivityResultContracts.TakePicture()){ result ->
-        val callbackData = codeCallbackMap[0] ?: return@registerForActivityResult
-        codeCallbackMap.remove(0)
+        val callbackData = callback ?: return@registerForActivityResult
+        callback = null
 
         if (callbackData !is CallbackData.Camera){
             callbackData.callback.invoke(Result.failure(java.lang.IllegalStateException()))
@@ -77,12 +77,12 @@ class ImagePickerFragment : Fragment() {
     }
 
     fun pickGalleryImage(callback: (Result<android.graphics.Bitmap>) -> Unit) {
-        val requestCode = codeCallbackMap.keys.sorted().lastOrNull() ?: 0
+        this.callback?.let {
+            it.callback.invoke(Result.failure(IllegalStateException("Callback should be null")))
+            this.callback = null
+        }
 
-        codeCallbackMap[requestCode] =
-            CallbackData.Gallery(
-                callback
-            )
+        this.callback = CallbackData.Gallery(callback)
 
         galleryImageResult.launch(
             PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
@@ -90,14 +90,13 @@ class ImagePickerFragment : Fragment() {
     }
 
     fun pickCameraImage(callback: (Result<android.graphics.Bitmap>) -> Unit) {
-        val requestCode = codeCallbackMap.keys.sorted().lastOrNull() ?: 0
+        this.callback?.let {
+            it.callback.invoke(Result.failure(IllegalStateException("Callback should be null")))
+            this.callback = null
+        }
 
         val outputUri = createPhotoUri()
-        codeCallbackMap[requestCode] =
-            CallbackData.Camera(
-                callback,
-                outputUri
-            )
+        this.callback = CallbackData.Camera(callback, outputUri)
 
         cameraImageResult.launch(outputUri)
     }
