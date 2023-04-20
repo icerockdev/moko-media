@@ -27,20 +27,20 @@ class ImageSelectionViewModel(
         selectImage(MediaSource.GALLERY)
     }
 
-//    @Suppress("TooGenericExceptionCaught")
-//    fun selectFile() {
-//        viewModelScope.launch {
-//            @Suppress("SwallowedException")
-//            try {
-//                val file = mediaPickerController.pickFiles()
-//                _textState.value = file.name
-//            } catch (canceled: CanceledException) {
-//                _textState.value = "canceled"
-//            } catch (exc: Exception) {
-//                _textState.value = exc.toString()
-//            }
-//        }
-//    }
+    @Suppress("TooGenericExceptionCaught")
+    fun selectFile() {
+        viewModelScope.launch {
+            @Suppress("SwallowedException")
+            try {
+                val file = mediaPickerController.pickFiles()
+                _textState.value = file.name
+            } catch (canceled: CanceledException) {
+                _textState.value = "canceled"
+            } catch (exc: Exception) {
+                _textState.value = exc.toString()
+            }
+        }
+    }
 
     @Suppress("TooGenericExceptionCaught")
     private fun selectImage(source: MediaSource) {
@@ -60,20 +60,20 @@ class ImageSelectionViewModel(
         }
     }
 
-//    @Suppress("TooGenericExceptionCaught")
-//    private fun selectMedia() {
-//        viewModelScope.launch {
-//            @Suppress("SwallowedException")
-//            try {
-//                val image = mediaPickerController.pickMedia()
-//                _textState.value = image.name
-//                _selectedImage.value = image.preview
-//            } catch (canceled: CanceledException) {
-//                _textState.value = "canceled"
-//            } catch (exc: Exception) {
-//                exc.printStackTrace()
-//                _textState.value = exc.toString()
-//            }
-//        }
-//    }
+    @Suppress("TooGenericExceptionCaught")
+    private fun selectMedia() {
+        viewModelScope.launch {
+            @Suppress("SwallowedException")
+            try {
+                val image = mediaPickerController.pickMedia()
+                _textState.value = image.name
+                _selectedImage.value = image.preview
+            } catch (canceled: CanceledException) {
+                _textState.value = "canceled"
+            } catch (exc: Exception) {
+                exc.printStackTrace()
+                _textState.value = exc.toString()
+            }
+        }
+    }
 }
