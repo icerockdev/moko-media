@@ -4,7 +4,7 @@
 
 package dev.icerock.moko.media
 
-data class Media(
+data class Media constructor(
     val name: String,
     val path: String,
     val preview: Bitmap,

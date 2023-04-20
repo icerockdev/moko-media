@@ -4,87 +4,68 @@
 
 package dev.icerock.moko.media.picker
 
-import android.app.Activity
-import android.content.Intent
+import android.annotation.SuppressLint
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import dev.icerock.moko.media.Media
 import dev.icerock.moko.media.MediaFactory
 
 class MediaPickerFragment : Fragment() {
 
-    private val codeCallbackMap = mutableMapOf<Int, CallbackData>()
+    private var callback: CallbackData? = null
 
     init {
         @Suppress("DEPRECATION")
         retainInstance = true
     }
 
-    fun pickVideo(callback: (Result<Media>) -> Unit) {
-        val requestCode = codeCallbackMap.keys.maxOrNull() ?: 0
-
-        codeCallbackMap[requestCode] = CallbackData(callback)
-
-        val intent = Intent().apply {
-            type = "video/*"
-            action = Intent.ACTION_GET_CONTENT
-        }
-
-        startActivityForResult(intent, requestCode)
-    }
-
-    fun pickMedia(callback: (Result<Media>) -> Unit) {
-        val requestCode = codeCallbackMap.keys.maxOrNull() ?: 0
-
-        codeCallbackMap[requestCode] = CallbackData(callback)
-
-        val intent = Intent().apply {
-            type = "image/* video/*"
-            action = Intent.ACTION_GET_CONTENT
-            putExtra(Intent.EXTRA_MIME_TYPES, arrayOf("video/*", "image/*"))
-        }
-        startActivityForResult(intent, requestCode)
-    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-
-        val callbackData = codeCallbackMap[requestCode] ?: return
-        codeCallbackMap.remove(requestCode)
+    @SuppressLint("Range")
+    private val mediaPicker = registerForActivityResult(ActivityResultContracts.PickVisualMedia()){ uri ->
+        val callbackData = callback ?: return@registerForActivityResult
+        callback = null
 
         val callback = callbackData.callback
 
-        if (resultCode == Activity.RESULT_CANCELED) {
+        if (uri == null) {
             callback.invoke(Result.failure(CanceledException()))
-            return
+            return@registerForActivityResult
         }
 
-        processResult(callback, data)
-    }
-
-    @Suppress("ReturnCount")
-    private fun processResult(
-        callback: (Result<Media>) -> Unit,
-        intent: Intent?
-    ) {
         val context = this.context
         if (context == null) {
             callback(Result.failure(IllegalStateException("context unavailable")))
-            return
-        }
-        if (intent == null) {
-            callback(Result.failure(IllegalStateException("intent unavailable")))
-            return
-        }
-        val intentData = intent.data
-        if (intentData == null) {
-            callback(Result.failure(IllegalStateException("intentData unavailable")))
-            return
+            return@registerForActivityResult
         }
 
         val result = kotlin.runCatching {
-            MediaFactory.create(context, intentData)
+            MediaFactory.create(context, uri)
         }
         callback.invoke(result)
+    }
+
+    fun pickVideo(callback: (Result<Media>) -> Unit) {
+        this.callback?.let {
+            it.callback.invoke(Result.failure(IllegalStateException("Callback should be null")))
+            this.callback = null
+        }
+        this.callback = CallbackData(callback)
+
+        mediaPicker.launch(
+            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.VideoOnly)
+        )
+    }
+
+    fun pickMedia(callback: (Result<Media>) -> Unit) {
+        this.callback?.let {
+            it.callback.invoke(Result.failure(IllegalStateException("Callback should be null")))
+            this.callback = null
+        }
+        this.callback = CallbackData(callback)
+
+        mediaPicker.launch(
+            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageAndVideo)
+        )
     }
 
     class CallbackData(val callback: (Result<Media>) -> Unit)

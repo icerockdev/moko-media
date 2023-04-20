@@ -5,7 +5,13 @@
 package dev.icerock.moko.media.picker
 
 import dev.icerock.moko.media.FileMedia
+import kotlinx.cinterop.ByteVar
+import kotlinx.cinterop.CPointer
+import kotlinx.cinterop.get
+import kotlinx.cinterop.reinterpret
+import platform.Foundation.NSData
 import platform.Foundation.NSURL
+import platform.Foundation.dataWithContentsOfURL
 import platform.Foundation.lastPathComponent
 import platform.UIKit.UIDocumentPickerDelegateProtocol
 import platform.UIKit.UIDocumentPickerViewController
@@ -28,7 +34,25 @@ internal class DocumentPickerDelegateToContinuation constructor(
         val filename = info.lastPathComponent
         val path = info.absoluteString
 
-        continuation.resumeWith(Result.success(FileMedia(name = filename.orEmpty(), path = path.orEmpty())))
+        val url = NSURL.URLWithString(path.orEmpty())
+            ?: throw IllegalArgumentException("invalid file path")
+        val data =
+            NSData.dataWithContentsOfURL(url) ?: throw IllegalArgumentException("invalid file data")
+        val bytes = data.bytes ?: throw IllegalArgumentException("file bytes is null")
+
+        val bytesPointer: CPointer<ByteVar> = bytes.reinterpret()
+        val byteArray = ByteArray(data.length.toInt()) { index -> bytesPointer[index] }
+
+
+        continuation.resumeWith(
+            Result.success(
+                FileMedia(
+                    name = filename.orEmpty(),
+                    path = path.orEmpty(),
+                    byteArray = byteArray
+                )
+            )
+        )
     }
 
     override fun documentPickerWasCancelled(controller: UIDocumentPickerViewController) {
