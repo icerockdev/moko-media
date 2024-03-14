@@ -118,7 +118,7 @@ internal class MediaPickerControllerImpl(
             FilePickerFragment().apply {
                 fragmentManager
                     .beginTransaction()
-                    .add(this, pickerFragmentTag)
+                    .add(this, filePickerFragmentTag)
                     .commitNow()
             }
         }
