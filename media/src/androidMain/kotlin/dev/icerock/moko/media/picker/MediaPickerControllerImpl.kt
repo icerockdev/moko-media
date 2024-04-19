@@ -5,6 +5,7 @@
 package dev.icerock.moko.media.picker
 
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleObserver
@@ -24,10 +25,10 @@ internal class MediaPickerControllerImpl(
 ) : MediaPickerController {
     var fragmentManager: FragmentManager? = null
 
-    override fun bind(lifecycle: Lifecycle, fragmentManager: FragmentManager) {
-        permissionsController.bind(lifecycle, fragmentManager)
+    override fun bind(activity: FragmentActivity) {
+        permissionsController.bind(activity)
 
-        this.fragmentManager = fragmentManager
+        this.fragmentManager = activity.supportFragmentManager
 
         val observer = object : LifecycleObserver {
 
@@ -37,7 +38,7 @@ internal class MediaPickerControllerImpl(
                 source.lifecycle.removeObserver(this)
             }
         }
-        lifecycle.addObserver(observer)
+        activity.lifecycle.addObserver(observer)
     }
 
     override suspend fun pickImage(source: MediaSource): Bitmap {
