@@ -58,13 +58,13 @@ internal class MediaPickerControllerImpl(
             permissionsController.providePermission(permission)
         }
 
-        val currentFragment: Fragment? = fragmentManager.findFragmentByTag(pickerFragmentTag)
+        val currentFragment: Fragment? = fragmentManager.findFragmentByTag(imagePickerFragmentTag)
         val imagePickerFragment: ImagePickerFragment =
             if (currentFragment !is ImagePickerFragment) {
                 ImagePickerFragment.newInstance(maxWidth, maxHeight).also {
                     fragmentManager
                         .beginTransaction()
-                        .add(it, pickerFragmentTag)
+                        .add(it, imagePickerFragmentTag)
                         .commitNow()
                 }
             } else currentFragment
@@ -86,12 +86,12 @@ internal class MediaPickerControllerImpl(
 
         permissionsController.providePermission(Permission.GALLERY)
 
-        val currentFragment: Fragment? = fragmentManager.findFragmentByTag(pickerFragmentTag)
+        val currentFragment: Fragment? = fragmentManager.findFragmentByTag(mediaPickerFragmentTag)
         val pickerFragment: MediaPickerFragment = if (currentFragment !is MediaPickerFragment) {
             MediaPickerFragment().apply {
                 fragmentManager
                     .beginTransaction()
-                    .add(this, pickerFragmentTag)
+                    .add(this, mediaPickerFragmentTag)
                     .commitNow()
             }
         } else currentFragment
@@ -113,7 +113,7 @@ internal class MediaPickerControllerImpl(
             FilePickerFragment().apply {
                 fragmentManager
                     .beginTransaction()
-                    .add(this, pickerFragmentTag)
+                    .add(this, filePickerFragmentTag)
                     .commitNow()
             }
         } else currentFragment
