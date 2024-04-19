@@ -6,5 +6,6 @@ package dev.icerock.moko.media
 
 class FileMedia(
     val name: String,
-    val path: String
+    val path: String,
+    val byteArray: ByteArray
 )

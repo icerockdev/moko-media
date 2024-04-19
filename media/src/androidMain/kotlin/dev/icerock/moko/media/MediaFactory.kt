@@ -4,11 +4,13 @@
 
 package dev.icerock.moko.media
 
+import android.annotation.SuppressLint
 import android.content.ContentResolver
 import android.content.Context
 import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.provider.MediaStore
+import android.provider.OpenableColumns
 import androidx.exifinterface.media.ExifInterface
 import dev.icerock.moko.media.BitmapUtils.getBitmapOrientation
 import dev.icerock.moko.media.BitmapUtils.getNormalizedBitmap
@@ -52,7 +54,7 @@ object MediaFactory {
         }
     }
 
-    @Suppress("ThrowsCount")
+    @SuppressLint("Range")
     private fun createPhotoMedia(
         contentResolver: ContentResolver,
         uri: Uri
@@ -75,8 +77,7 @@ object MediaFactory {
                 getBitmapOrientation(it)
             } ?: ExifInterface.ORIENTATION_UNDEFINED
 
-            val titleIndex = cursor.getColumnIndexOrThrow(MediaStore.Images.ImageColumns.TITLE)
-            val title = cursor.getString(titleIndex) ?: uri.lastPathSegment
+            val title = cursor.getString(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME))
 
             val normalizedBitmap = contentResolver.openInputStream(uri)?.use {
                 getNormalizedBitmap(it, orientation, sampleSize = null)
@@ -84,14 +85,14 @@ object MediaFactory {
 
             Media(
                 name = title.orEmpty(),
-                path = uri.toString(),
+                path = uri.path ?: uri.toString(),
                 type = MediaType.PHOTO,
                 preview = Bitmap(normalizedBitmap)
             )
         }
     }
 
-    @Suppress("ThrowsCount")
+    @SuppressLint("Range")
     private fun createVideoMedia(
         contentResolver: ContentResolver,
         uri: Uri
@@ -110,12 +111,7 @@ object MediaFactory {
                 error("cursor should have one element")
             }
 
-            val titleColumn = cursor.getColumnIndex(MediaStore.Video.VideoColumns.TITLE)
-            val title = if (titleColumn != -1) {
-                cursor.getString(titleColumn)
-            } else {
-                null
-            } ?: uri.lastPathSegment ?: "file"
+            val title = cursor.getString(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME))
 
             val idColumn = cursor.getColumnIndex(MediaStore.Video.VideoColumns._ID)
             val thumbnail: android.graphics.Bitmap = if (idColumn != -1) {
@@ -135,8 +131,8 @@ object MediaFactory {
             } ?: throw IOException("can't read thumbnail")
 
             Media(
-                name = title,
-                path = uri.toString(),
+                name = title.orEmpty(),
+                path = uri.path ?: uri.toString(),
                 type = MediaType.VIDEO,
                 preview = Bitmap(thumbnail)
             )

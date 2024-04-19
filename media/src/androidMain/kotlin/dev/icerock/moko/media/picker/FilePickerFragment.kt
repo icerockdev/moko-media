@@ -4,12 +4,11 @@
 
 package dev.icerock.moko.media.picker
 
-import android.app.Activity
-import android.content.Intent
-import android.os.Environment
+import android.annotation.SuppressLint
+import android.content.ContentResolver
+import android.provider.OpenableColumns
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
-import com.nbsp.materialfilepicker.MaterialFilePicker
-import com.nbsp.materialfilepicker.ui.FilePickerActivity
 import dev.icerock.moko.media.FileMedia
 import java.io.File
 
@@ -19,49 +18,83 @@ class FilePickerFragment : Fragment() {
         retainInstance = true
     }
 
-    private val codeCallbackMap = mutableMapOf<Int, CallbackData>()
+    private var callback: CallbackData? = null
+
+    @SuppressLint("Range")
+    private val pickDocument =
+        registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+            val callbackData = callback ?: return@registerForActivityResult
+            callback = null
+
+            val callback = callbackData.callback
+
+            if (uri == null) {
+                callback.invoke(Result.failure(CanceledException()))
+                return@registerForActivityResult
+            }
+
+            if (uri.path == null) {
+                callback.invoke(Result.failure(java.lang.IllegalStateException("File is null")))
+                return@registerForActivityResult
+            }
+
+            val fileNameWithExtension = if (uri.scheme == ContentResolver.SCHEME_CONTENT) {
+                val cursor = requireContext().contentResolver.query(uri, null, null, null, null)
+                cursor?.use {
+                    if (!it.moveToFirst()) null
+                    else it.getString(it.getColumnIndex(OpenableColumns.DISPLAY_NAME))
+                }
+            } else null
+
+            uri.path?.let { path ->
+                val file = File(path)
+                val name = file.name
+                val byteArray = requireContext()
+                    .contentResolver
+                    .openInputStream(uri)
+                    ?.readBytes() ?: return@registerForActivityResult
+
+                callback(
+                    Result.success(
+                        FileMedia(
+                            fileNameWithExtension ?: name,
+                            uri.toString(),
+                            byteArray
+                        )
+                    )
+                )
+            }
+        }
+
 
     fun pickFile(callback: (Result<FileMedia>) -> Unit) {
-        val requestCode = codeCallbackMap.keys.maxOrNull() ?: 0
-
-        codeCallbackMap[requestCode] = CallbackData(callback)
-
-        // TODO нужно убрать использование внешней зависимости, сделать конфигурацию способа
-        //  выбора файла из вне (аргументом в контроллер передавать)
-        val externalStorage = Environment.getExternalStorageDirectory()
-        MaterialFilePicker().withSupportFragment(this)
-            .withCloseMenu(true)
-            .withRootPath(externalStorage.absolutePath)
-            .withRequestCode(requestCode)
-            .start()
-    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-
-        val callbackData = codeCallbackMap[requestCode] ?: return
-        codeCallbackMap.remove(requestCode)
-
-        val callback = callbackData.callback
-
-        if (resultCode == Activity.RESULT_CANCELED) {
-            callback.invoke(Result.failure(CanceledException()))
-            return
+        this.callback?.let {
+            it.callback.invoke(Result.failure(IllegalStateException("Callback should be null")))
+            this.callback = null
         }
 
-        processResult(callback, data)
-    }
+        this.callback = CallbackData(callback)
 
-    private fun processResult(
-        callback: (Result<FileMedia>) -> Unit,
-        data: Intent?
-    ) {
-        val filePath = data?.getStringExtra(FilePickerActivity.RESULT_FILE_PATH)
-
-        filePath?.let { path ->
-            val name = File(path).name
-            callback(Result.success(FileMedia(name, path)))
-        }
+        pickDocument.launch(
+            arrayOf(
+                "application/pdf",
+                "application/octet-stream",
+                "application/doc",
+                "application/msword",
+                "application/ms-doc",
+                "application/vnd.ms-excel",
+                "application/vnd.ms-powerpoint",
+                "application/json",
+                "application/zip",
+                "text/plain",
+                "text/html",
+                "text/xml",
+                "audio/mpeg",
+                "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            )
+        )
     }
 
     class CallbackData(val callback: (Result<FileMedia>) -> Unit)
