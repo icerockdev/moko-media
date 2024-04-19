@@ -54,7 +54,7 @@ class ImagePickerFragment : Fragment() {
         if (callbackData !is CallbackData.Camera){
             callbackData.callback.invoke(
                 Result.failure(
-                    java.lang.IllegalStateException("Callback type should be Camera")
+                    IllegalStateException("Callback type should be Camera")
                 )
             )
             return@registerForActivityResult

@@ -59,21 +59,4 @@ class ImageSelectionViewModel(
             }
         }
     }
-
-    @Suppress("TooGenericExceptionCaught")
-    private fun selectMedia() {
-        viewModelScope.launch {
-            @Suppress("SwallowedException")
-            try {
-                val image = mediaPickerController.pickMedia()
-                _textState.value = image.name
-                _selectedImage.value = image.preview
-            } catch (canceled: CanceledException) {
-                _textState.value = "canceled"
-            } catch (exc: Exception) {
-                exc.printStackTrace()
-                _textState.value = exc.toString()
-            }
-        }
-    }
 }

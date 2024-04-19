@@ -59,9 +59,13 @@ object MediaFactory {
         contentResolver: ContentResolver,
         uri: Uri
     ): Media {
+        val projection = arrayOf(
+            MediaStore.Images.ImageColumns.ORIENTATION,
+            MediaStore.Images.ImageColumns.TITLE
+        )
 
         val cursorRef = contentResolver
-            .query(uri, null, null, null, null)
+            .query(uri, projection, null, null, null)
             ?: throw IllegalArgumentException("can't open cursor")
 
         return cursorRef.use { cursor ->
@@ -93,8 +97,13 @@ object MediaFactory {
         contentResolver: ContentResolver,
         uri: Uri
     ): Media {
+        val projection = arrayOf(
+            MediaStore.Video.VideoColumns._ID,
+            MediaStore.Video.VideoColumns.TITLE
+        )
+
         val cursorRef = contentResolver
-            .query(uri, null, null, null, null)
+            .query(uri, projection, null, null, null)
             ?: throw IllegalArgumentException("can't open cursor")
 
         return cursorRef.use { cursor ->
