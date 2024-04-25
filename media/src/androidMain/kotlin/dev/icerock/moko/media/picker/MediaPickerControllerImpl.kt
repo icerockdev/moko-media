@@ -14,8 +14,6 @@ import androidx.activity.result.ActivityResultRegistryOwner
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.FileProvider
-import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleObserver
 import androidx.lifecycle.LifecycleOwner
@@ -36,24 +34,19 @@ import kotlin.coroutines.suspendCoroutine
 
 internal class MediaPickerControllerImpl(
     override val permissionsController: PermissionsController,
-    private val mediaPickerFragmentTag: String,
-    private val imagePickerFragmentTag: String,
-    private val filePickerFragmentTag: String
 ) : MediaPickerController {
 
     private val activityHolder = MutableStateFlow<Activity?>(null)
 
     private var photoFilePath: String? = null
 
-    var fragmentManager: FragmentManager? = null
-
     private val key = UUID.randomUUID().toString()
 
-    // TODO replace ImagePickerFragment.CallbackData to own CallbackData
-    private val codeCallbackMap = mutableMapOf<Int, ImagePickerFragment.CallbackData>()
+    private val codeCallbackMap = mutableMapOf<Int, CallbackData<*>>()
 
     private val takePictureLauncherHolder = MutableStateFlow<ActivityResultLauncher<Uri>?>(null)
-    private val pickMultipleVisualMediaLauncherHolder = MutableStateFlow<ActivityResultLauncher<PickVisualMediaRequest>?>(null)
+    private val pickVisualMediaLauncherHolder = MutableStateFlow<ActivityResultLauncher<PickVisualMediaRequest>?>(null)
+    private val pickFileMediaLauncherHolder = MutableStateFlow<ActivityResultLauncher<Array<String>>?>(null)
 
     private val maxImageWidth
         get() = DEFAULT_MAX_IMAGE_WIDTH
@@ -70,11 +63,11 @@ internal class MediaPickerControllerImpl(
             "TakePicture-$key",
             ActivityResultContracts.TakePicture()
         ) { success ->
-            val callbackData = codeCallbackMap.values.last()
+            val callbackData = codeCallbackMap.values.last() as CallbackData<android.graphics.Bitmap>
             val callback = callbackData.callback
             if (success) {
                 when (callbackData) {
-                    is ImagePickerFragment.CallbackData.Camera -> {
+                    is CallbackData.Camera -> {
                         processResult(activity, callback, callbackData.outputUri)
                     }
                     else -> Unit
@@ -84,11 +77,11 @@ internal class MediaPickerControllerImpl(
             }
         }
 
-        val pickMultipleVisualMediaLauncher = activityResultRegistryOwner.activityResultRegistry.register(
+        val pickVisualMediaLauncher = activityResultRegistryOwner.activityResultRegistry.register(
             "PickVisualMedia-$key",
             ActivityResultContracts.PickVisualMedia()
         ) { uri ->
-            val callbackData = codeCallbackMap.values.last()
+            val callbackData = codeCallbackMap.values.last() as CallbackData<android.graphics.Bitmap>
             val callback = callbackData.callback
             if (uri != null) {
                 processResult(activity, callback, uri)
@@ -97,8 +90,30 @@ internal class MediaPickerControllerImpl(
             }
         }
 
+        val pickFileMediaLauncher = activityResultRegistryOwner.activityResultRegistry.register(
+            "PickFileMedia-$key",
+            ActivityResultContracts.OpenDocument()
+        ) { uri ->
+            val callbackData = codeCallbackMap.values.last() as CallbackData<FileMedia>
+            val callback = callbackData.callback
+
+            if (uri != null) {
+                callback.invoke(Result.failure(CanceledException()))
+                return@register
+            }
+
+            if (uri?.path == null) {
+                callback.invoke(Result.failure(java.lang.IllegalStateException("File is null")))
+                return@register
+            }
+            uri.path?.let { path ->
+                // TODO pass result
+            }
+        }
+
         takePictureLauncherHolder.value = takePictureLauncher
-        pickMultipleVisualMediaLauncherHolder.value = pickMultipleVisualMediaLauncher
+        pickVisualMediaLauncherHolder.value = pickVisualMediaLauncher
+        pickFileMediaLauncherHolder.value = pickFileMediaLauncher
 
         val observer = object : LifecycleObserver {
 
@@ -106,7 +121,8 @@ internal class MediaPickerControllerImpl(
             fun onDestroyed(source: LifecycleOwner) {
                 this@MediaPickerControllerImpl.activityHolder.value = null
                 this@MediaPickerControllerImpl.takePictureLauncherHolder.value = null
-                this@MediaPickerControllerImpl.pickMultipleVisualMediaLauncherHolder.value = null
+                this@MediaPickerControllerImpl.pickVisualMediaLauncherHolder.value = null
+                this@MediaPickerControllerImpl.pickFileMediaLauncherHolder.value = null
                 source.lifecycle.removeObserver(this)
             }
         }
@@ -143,23 +159,33 @@ internal class MediaPickerControllerImpl(
     private fun pickGalleryImage(callback: (Result<android.graphics.Bitmap>) -> Unit) {
         val requestCode = codeCallbackMap.keys.sorted().lastOrNull() ?: 0
         codeCallbackMap[requestCode] =
-            ImagePickerFragment.CallbackData.Gallery(
+            CallbackData.Gallery(
                 callback
             )
-        val launcher = pickMultipleVisualMediaLauncherHolder.value
+        val launcher = pickVisualMediaLauncherHolder.value
         launcher?.launch(PickVisualMediaRequest())
     }
 
     private fun pickCameraImage(outputUri: Uri, callback: (Result<android.graphics.Bitmap>) -> Unit) {
         val requestCode = codeCallbackMap.keys.sorted().lastOrNull() ?: 0
         codeCallbackMap[requestCode] =
-            ImagePickerFragment.CallbackData.Camera(
+            CallbackData.Camera(
                 callback,
                 outputUri
             )
 
         val launcher = takePictureLauncherHolder.value
         launcher?.launch(outputUri)
+    }
+
+    private fun pickMediaFile(callback: (Result<Media>) -> Unit) {
+        val requestCode = codeCallbackMap.keys.sorted().lastOrNull() ?: 0
+        codeCallbackMap[requestCode] =
+            CallbackData.Media(
+                callback
+            )
+        val launcher = pickVisualMediaLauncherHolder.value
+        launcher?.launch(PickVisualMediaRequest())
     }
 
     private suspend fun createPhotoUri(): Uri {
@@ -175,29 +201,42 @@ internal class MediaPickerControllerImpl(
         )
     }
 
-    // TODO refactor fragmentManager usage
     override suspend fun pickMedia(): Media {
-        val fragmentManager =
-            fragmentManager ?: error("can't pick image without active window")
-
         permissionsController.providePermission(Permission.GALLERY)
-
-        val currentFragment: Fragment? = fragmentManager.findFragmentByTag(pickerFragmentTag)
-        val pickerFragment: MediaPickerFragment = if (currentFragment != null) {
-            currentFragment as MediaPickerFragment
-        } else {
-            MediaPickerFragment().apply {
-                fragmentManager
-                    .beginTransaction()
-                    .add(this, pickerFragmentTag)
-                    .commitNow()
-            }
-        }
 
         return suspendCoroutine { continuation ->
             val action: (Result<Media>) -> Unit = { continuation.resumeWith(it) }
-            pickerFragment.pickMedia(action)
+            pickMediaFile(action)
         }
+    }
+
+    private fun pickFile(callback: (Result<FileMedia>) -> Unit) {
+        val requestCode = codeCallbackMap.keys.sorted().lastOrNull() ?: 0
+        codeCallbackMap[requestCode] =
+            CallbackData.FileMedia(
+                callback
+            )
+        val launcher = pickFileMediaLauncherHolder.value
+        launcher?.launch(
+            arrayOf(
+                "application/pdf",
+                "application/octet-stream",
+                "application/doc",
+                "application/msword",
+                "application/ms-doc",
+                "application/vnd.ms-excel",
+                "application/vnd.ms-powerpoint",
+                "application/json",
+                "application/zip",
+                "text/plain",
+                "text/html",
+                "text/xml",
+                "audio/mpeg",
+                "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            )
+        )
     }
 
     @Suppress("ReturnCount")
@@ -236,26 +275,11 @@ internal class MediaPickerControllerImpl(
     }
 
     override suspend fun pickFiles(): FileMedia {
-        val fragmentManager =
-            fragmentManager ?: error("can't pick image without active window")
-
         permissionsController.providePermission(Permission.STORAGE)
-
-        val currentFragment: Fragment? = fragmentManager.findFragmentByTag(filePickerFragmentTag)
-        val pickerFragment: FilePickerFragment = if (currentFragment != null) {
-            currentFragment as FilePickerFragment
-        } else {
-            FilePickerFragment().apply {
-                fragmentManager
-                    .beginTransaction()
-                    .add(this, pickerFragmentTag)
-                    .commitNow()
-            }
-        }
 
         val path = suspendCoroutine<FileMedia> { continuation ->
             val action: (Result<FileMedia>) -> Unit = { continuation.resumeWith(it) }
-            pickerFragment.pickFile(action)
+            pickFile(action)
         }
 
         return path
@@ -281,6 +305,24 @@ internal class MediaPickerControllerImpl(
             MediaSource.GALLERY -> listOf(Permission.GALLERY)
             MediaSource.CAMERA -> listOf(Permission.CAMERA)
         }
+    }
+
+    sealed class CallbackData<T>(val callback: (Result<T>) -> Unit) {
+        class Gallery(callback: (Result<android.graphics.Bitmap>) -> Unit) :
+            CallbackData<android.graphics.Bitmap>(callback)
+
+        class Camera(
+            callback: (Result<android.graphics.Bitmap>) -> Unit,
+            val outputUri: Uri
+        ) : CallbackData<android.graphics.Bitmap>(callback)
+
+        class Media(
+            callback: (Result<dev.icerock.moko.media.Media>) -> Unit,
+        ) : CallbackData<dev.icerock.moko.media.Media>(callback)
+
+        class FileMedia(
+            callback: (Result<dev.icerock.moko.media.FileMedia>) -> Unit,
+        ) : CallbackData<dev.icerock.moko.media.FileMedia>(callback)
     }
 
     companion object {

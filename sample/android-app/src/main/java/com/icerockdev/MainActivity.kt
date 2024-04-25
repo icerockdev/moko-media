@@ -28,6 +28,7 @@ class MainActivity : AppCompatActivity() {
 
         binding.cameraButton.setOnClickListener { viewModel.onCameraPressed() }
         binding.galleryButton.setOnClickListener { viewModel.onGalleryPressed() }
+        binding.fileButton.setOnClickListener { viewModel.onFilePressed() }
         viewModel.textState.ld().observe(this) { binding.textView.text = it }
         viewModel.selectedImage.ld()
             .observe(this) { binding.imageView.setImageBitmap(it?.platformBitmap) }

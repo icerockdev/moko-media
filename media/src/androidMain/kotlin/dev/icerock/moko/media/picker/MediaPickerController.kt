@@ -23,15 +23,9 @@ actual interface MediaPickerController {
     companion object {
         operator fun invoke(
             permissionsController: PermissionsController,
-            mediaPickerFragmentTag: String = "MediaControllerMediaPicker",
-            imagePickerFragmentTag: String = "MediaControllerImagePicker",
-            filePickerFragmentTag: String = "FileMediaControllerPicker"
         ): MediaPickerController {
             return MediaPickerControllerImpl(
                 permissionsController = permissionsController,
-                mediaPickerFragmentTag = mediaPickerFragmentTag,
-                imagePickerFragmentTag = imagePickerFragmentTag,
-                filePickerFragmentTag = filePickerFragmentTag
             )
         }
     }
