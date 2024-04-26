@@ -36,7 +36,8 @@ internal class FilePickerDelegate {
                 return@register
             }
 
-            if (uri.path == null) {
+            val path = uri.path
+            if (path == null) {
                 callback.invoke(Result.failure(java.lang.IllegalStateException("File is null")))
                 return@register
             }
@@ -50,18 +51,15 @@ internal class FilePickerDelegate {
                 }
             } else null
 
-            uri.path?.let { path ->
-                val file = File(path)
-                val name = file.name
-                callback(
-                    Result.success(
-                        FileMedia(
-                            fileNameWithExtension ?: name,
-                            uri.toString(),
-                        )
-                    )
+            val file = File(path)
+            val name = file.name
+            val result = Result.success(
+                FileMedia(
+                    fileNameWithExtension ?: name,
+                    uri.toString(),
                 )
-            }
+            )
+            callback.invoke(result)
         }
     }
 

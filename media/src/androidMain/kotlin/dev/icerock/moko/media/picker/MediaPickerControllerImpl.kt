@@ -66,6 +66,8 @@ internal class MediaPickerControllerImpl(
      * (Look here: https://youtrack.jetbrains.com/issue/KT-37331)
      */
     override suspend fun pickImage(source: MediaSource, maxWidth: Int, maxHeight: Int): Bitmap {
+
+        @Suppress("NewApi")
         source.requiredPermissions().forEach { permission ->
             permissionsController.providePermission(permission)
         }
