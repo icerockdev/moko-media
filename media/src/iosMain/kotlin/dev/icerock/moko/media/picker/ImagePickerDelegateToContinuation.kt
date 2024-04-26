@@ -8,6 +8,7 @@ import dev.icerock.moko.media.Bitmap
 import dev.icerock.moko.media.Media
 import dev.icerock.moko.media.MediaType
 import dev.icerock.moko.media.picker.ios.MediaPickerController
+import kotlinx.cinterop.ExperimentalForeignApi
 import platform.AVFoundation.AVAsset
 import platform.AVFoundation.AVAssetImageGenerator
 import platform.AVFoundation.AVURLAsset
@@ -91,6 +92,7 @@ internal class ImagePickerDelegateToContinuation constructor(
     }
 
     // Стоит сделать асинхронно и придумать что делать с ошибкой
+    @OptIn(ExperimentalForeignApi::class)
     private fun fetchThumbnail(videoAsset: AVAsset): UIImage {
         val imageGenerator = AVAssetImageGenerator(
             asset = videoAsset
