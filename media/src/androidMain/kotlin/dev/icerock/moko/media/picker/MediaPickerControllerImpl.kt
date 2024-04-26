@@ -5,13 +5,11 @@
 package dev.icerock.moko.media.picker
 
 import android.app.Activity
-import android.content.Context
 import android.net.Uri
 import android.os.Environment
 import androidx.activity.ComponentActivity
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.ActivityResultRegistryOwner
-import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.FileProvider
 import androidx.lifecycle.Lifecycle
@@ -19,7 +17,6 @@ import androidx.lifecycle.LifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.OnLifecycleEvent
 import dev.icerock.moko.media.Bitmap
-import dev.icerock.moko.media.BitmapUtils
 import dev.icerock.moko.media.FileMedia
 import dev.icerock.moko.media.Media
 import dev.icerock.moko.permissions.Permission
@@ -44,36 +41,19 @@ internal class MediaPickerControllerImpl(
 
     private val codeCallbackMap = mutableMapOf<Int, CallbackData<*>>()
 
-    private val pickVisualMediaLauncherHolder = MutableStateFlow<ActivityResultLauncher<PickVisualMediaRequest>?>(null)
     private val pickFileMediaLauncherHolder = MutableStateFlow<ActivityResultLauncher<Array<String>>?>(null)
 
     private val imagePickerDelegate = ImagePickerDelegate()
-
-    private val maxImageWidth
-        get() = DEFAULT_MAX_IMAGE_WIDTH
-    private val maxImageHeight
-        get() = DEFAULT_MAX_IMAGE_HEIGHT
+    private val mediaPickerDelegate = MediaPickerDelegate()
 
     override fun bind(activity: ComponentActivity) {
         this.activityHolder.value = activity
         permissionsController.bind(activity)
 
         imagePickerDelegate.bind(activity)
+        mediaPickerDelegate.bind(activity)
 
         val activityResultRegistryOwner = activity as ActivityResultRegistryOwner
-
-        val pickVisualMediaLauncher = activityResultRegistryOwner.activityResultRegistry.register(
-            "PickVisualMedia-$key",
-            ActivityResultContracts.PickVisualMedia()
-        ) { uri ->
-            val callbackData = codeCallbackMap.values.last() as CallbackData<android.graphics.Bitmap>
-            val callback = callbackData.callback
-            if (uri != null) {
-                processResult(activity, callback, uri)
-            } else {
-                callback.invoke(Result.failure(CanceledException()))
-            }
-        }
 
         val pickFileMediaLauncher = activityResultRegistryOwner.activityResultRegistry.register(
             "PickFileMedia-$key",
@@ -96,7 +76,6 @@ internal class MediaPickerControllerImpl(
             }
         }
 
-        pickVisualMediaLauncherHolder.value = pickVisualMediaLauncher
         pickFileMediaLauncherHolder.value = pickFileMediaLauncher
 
         val observer = object : LifecycleObserver {
@@ -104,7 +83,6 @@ internal class MediaPickerControllerImpl(
             @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
             fun onDestroyed(source: LifecycleOwner) {
                 this@MediaPickerControllerImpl.activityHolder.value = null
-                this@MediaPickerControllerImpl.pickVisualMediaLauncherHolder.value = null
                 this@MediaPickerControllerImpl.pickFileMediaLauncherHolder.value = null
                 source.lifecycle.removeObserver(this)
             }
@@ -149,16 +127,6 @@ internal class MediaPickerControllerImpl(
         return Bitmap(bitmap)
     }
 
-    private fun pickMediaFile(callback: (Result<Media>) -> Unit) {
-        val requestCode = codeCallbackMap.keys.sorted().lastOrNull() ?: 0
-        codeCallbackMap[requestCode] =
-            CallbackData.Media(
-                callback
-            )
-        val launcher = pickVisualMediaLauncherHolder.value
-        launcher?.launch(PickVisualMediaRequest())
-    }
-
     private suspend fun createPhotoUri(): Uri {
         val context = awaitActivity()
         val filesDir = context.getExternalFilesDir(Environment.DIRECTORY_PICTURES)
@@ -177,7 +145,7 @@ internal class MediaPickerControllerImpl(
 
         return suspendCoroutine { continuation ->
             val action: (Result<Media>) -> Unit = { continuation.resumeWith(it) }
-            pickMediaFile(action)
+            mediaPickerDelegate.pickMedia(action)
         }
     }
 
@@ -193,41 +161,6 @@ internal class MediaPickerControllerImpl(
                 "*/*",
             )
         )
-    }
-
-    @Suppress("ReturnCount")
-    private fun processResult(
-        context: Context,
-        callback: (Result<android.graphics.Bitmap>) -> Unit,
-        uri: Uri
-    ) {
-        val contentResolver = context.contentResolver
-
-        val bitmapOptions = contentResolver.openInputStream(uri)?.use {
-            BitmapUtils.getBitmapOptionsFromStream(it)
-        } ?: run {
-            callback.invoke(Result.failure(NoAccessToFileException(uri.toString())))
-            return
-        }
-
-        val sampleSize =
-            BitmapUtils.calculateInSampleSize(bitmapOptions, maxImageWidth, maxImageHeight)
-
-        val orientation = contentResolver.openInputStream(uri)?.use {
-            BitmapUtils.getBitmapOrientation(it)
-        } ?: run {
-            callback.invoke(Result.failure(NoAccessToFileException(uri.toString())))
-            return
-        }
-
-        val bitmap = contentResolver.openInputStream(uri)?.use {
-            BitmapUtils.getNormalizedBitmap(it, orientation, sampleSize)
-        } ?: run {
-            callback.invoke(Result.failure(NoAccessToFileException(uri.toString())))
-            return
-        }
-
-        callback.invoke(Result.success(bitmap))
     }
 
     override suspend fun pickFiles(): FileMedia {
