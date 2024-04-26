@@ -8,9 +8,6 @@ import android.app.Activity
 import android.net.Uri
 import android.os.Environment
 import androidx.activity.ComponentActivity
-import androidx.activity.result.ActivityResultLauncher
-import androidx.activity.result.ActivityResultRegistryOwner
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.FileProvider
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleObserver
@@ -26,7 +23,6 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withTimeoutOrNull
 import java.io.File
-import java.util.UUID
 import kotlin.coroutines.suspendCoroutine
 
 internal class MediaPickerControllerImpl(
@@ -37,14 +33,9 @@ internal class MediaPickerControllerImpl(
 
     private var photoFilePath: String? = null
 
-    private val key = UUID.randomUUID().toString()
-
-    private val codeCallbackMap = mutableMapOf<Int, CallbackData<*>>()
-
-    private val pickFileMediaLauncherHolder = MutableStateFlow<ActivityResultLauncher<Array<String>>?>(null)
-
     private val imagePickerDelegate = ImagePickerDelegate()
     private val mediaPickerDelegate = MediaPickerDelegate()
+    private val filePickerDelegate = FilePickerDelegate()
 
     override fun bind(activity: ComponentActivity) {
         this.activityHolder.value = activity
@@ -52,38 +43,13 @@ internal class MediaPickerControllerImpl(
 
         imagePickerDelegate.bind(activity)
         mediaPickerDelegate.bind(activity)
-
-        val activityResultRegistryOwner = activity as ActivityResultRegistryOwner
-
-        val pickFileMediaLauncher = activityResultRegistryOwner.activityResultRegistry.register(
-            "PickFileMedia-$key",
-            ActivityResultContracts.OpenDocument()
-        ) { uri ->
-            val callbackData = codeCallbackMap.values.last() as CallbackData<FileMedia>
-            val callback = callbackData.callback
-
-            if (uri != null) {
-                callback.invoke(Result.failure(CanceledException()))
-                return@register
-            }
-
-            if (uri?.path == null) {
-                callback.invoke(Result.failure(java.lang.IllegalStateException("File is null")))
-                return@register
-            }
-            uri.path?.let { path ->
-                // TODO pass result
-            }
-        }
-
-        pickFileMediaLauncherHolder.value = pickFileMediaLauncher
+        filePickerDelegate.bind(activity)
 
         val observer = object : LifecycleObserver {
 
             @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
             fun onDestroyed(source: LifecycleOwner) {
                 this@MediaPickerControllerImpl.activityHolder.value = null
-                this@MediaPickerControllerImpl.pickFileMediaLauncherHolder.value = null
                 source.lifecycle.removeObserver(this)
             }
         }
@@ -149,26 +115,12 @@ internal class MediaPickerControllerImpl(
         }
     }
 
-    private fun pickFile(callback: (Result<FileMedia>) -> Unit) {
-        val requestCode = codeCallbackMap.keys.sorted().lastOrNull() ?: 0
-        codeCallbackMap[requestCode] =
-            CallbackData.FileMedia(
-                callback
-            )
-        val launcher = pickFileMediaLauncherHolder.value
-        launcher?.launch(
-            arrayOf(
-                "*/*",
-            )
-        )
-    }
-
     override suspend fun pickFiles(): FileMedia {
         permissionsController.providePermission(Permission.STORAGE)
 
         val path = suspendCoroutine<FileMedia> { continuation ->
             val action: (Result<FileMedia>) -> Unit = { continuation.resumeWith(it) }
-            pickFile(action)
+            filePickerDelegate.pickFile(action)
         }
 
         return path
@@ -194,24 +146,6 @@ internal class MediaPickerControllerImpl(
             MediaSource.GALLERY -> listOf(Permission.GALLERY)
             MediaSource.CAMERA -> listOf(Permission.CAMERA)
         }
-    }
-
-    sealed class CallbackData<T>(val callback: (Result<T>) -> Unit) {
-        class Gallery(callback: (Result<android.graphics.Bitmap>) -> Unit) :
-            CallbackData<android.graphics.Bitmap>(callback)
-
-        class Camera(
-            callback: (Result<android.graphics.Bitmap>) -> Unit,
-            val outputUri: Uri
-        ) : CallbackData<android.graphics.Bitmap>(callback)
-
-        class Media(
-            callback: (Result<dev.icerock.moko.media.Media>) -> Unit,
-        ) : CallbackData<dev.icerock.moko.media.Media>(callback)
-
-        class FileMedia(
-            callback: (Result<dev.icerock.moko.media.FileMedia>) -> Unit,
-        ) : CallbackData<dev.icerock.moko.media.FileMedia>(callback)
     }
 
     companion object {
