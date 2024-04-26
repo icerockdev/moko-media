@@ -10,9 +10,8 @@ import android.os.Environment
 import androidx.activity.ComponentActivity
 import androidx.core.content.FileProvider
 import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleObserver
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.OnLifecycleEvent
 import dev.icerock.moko.media.Bitmap
 import dev.icerock.moko.media.FileMedia
 import dev.icerock.moko.media.Media
@@ -45,12 +44,13 @@ internal class MediaPickerControllerImpl(
         mediaPickerDelegate.bind(activity)
         filePickerDelegate.bind(activity)
 
-        val observer = object : LifecycleObserver {
+        val observer = object : LifecycleEventObserver {
 
-            @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
-            fun onDestroyed(source: LifecycleOwner) {
-                this@MediaPickerControllerImpl.activityHolder.value = null
-                source.lifecycle.removeObserver(this)
+            override fun onStateChanged(source: LifecycleOwner, event: Lifecycle.Event) {
+                if (event == Lifecycle.Event.ON_DESTROY) {
+                    this@MediaPickerControllerImpl.activityHolder.value = null
+                    source.lifecycle.removeObserver(this)
+                }
             }
         }
         activity.lifecycle.addObserver(observer)

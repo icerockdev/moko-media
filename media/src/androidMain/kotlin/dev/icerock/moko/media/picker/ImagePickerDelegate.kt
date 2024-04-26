@@ -32,14 +32,27 @@ internal class ImagePickerDelegate {
             val callbackData = callback ?: return@register
             callback = null
 
-            val callback = callbackData.callback
-
-            if (uri == null) {
-                callback.invoke(Result.failure(CanceledException()))
+            if (callbackData !is CallbackData.Gallery) {
+                callbackData.callback.invoke(
+                    Result.failure(
+                        IllegalStateException("Callback type should be Gallery")
+                    )
+                )
                 return@register
             }
 
-            processResult(activity, callback, uri)
+            if (uri == null) {
+                callbackData.callback.invoke(Result.failure(CanceledException()))
+                return@register
+            }
+
+            processResult(
+                context = activity,
+                callback = callbackData.callback,
+                uri = uri,
+                maxImageWidth = callbackData.maxWidth,
+                maxImageHeight = callbackData.maxHeight,
+            )
         }
 
         takePictureLauncherHolder.value = activityResultRegistry.register(
@@ -63,7 +76,13 @@ internal class ImagePickerDelegate {
                 return@register
             }
 
-            processResult(activity, callbackData.callback, callbackData.outputUri)
+            processResult(
+                context = activity,
+                callback = callbackData.callback,
+                uri = callbackData.outputUri,
+                maxImageWidth = callbackData.maxWidth,
+                maxImageHeight = callbackData.maxHeight,
+            )
         }
 
         val observer = object : LifecycleEventObserver {
@@ -89,7 +108,11 @@ internal class ImagePickerDelegate {
             this.callback = null
         }
 
-        this.callback = CallbackData.Gallery(callback)
+        this.callback = CallbackData.Gallery(
+            callback,
+            maxWidth,
+            maxHeight,
+        )
 
         pickVisualMediaLauncherHolder.value?.launch(
             PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
@@ -107,7 +130,12 @@ internal class ImagePickerDelegate {
             this.callback = null
         }
 
-        this.callback = CallbackData.Camera(callback, outputUri)
+        this.callback = CallbackData.Camera(
+            callback,
+            outputUri,
+            maxWidth,
+            maxHeight,
+        )
 
         takePictureLauncherHolder.value?.launch(
             outputUri
@@ -152,12 +180,17 @@ internal class ImagePickerDelegate {
     }
 
     sealed class CallbackData(val callback: (Result<android.graphics.Bitmap>) -> Unit) {
-        class Gallery(callback: (Result<android.graphics.Bitmap>) -> Unit) :
-            CallbackData(callback)
+        class Gallery(
+            callback: (Result<android.graphics.Bitmap>) -> Unit,
+            val maxWidth: Int,
+            val maxHeight: Int,
+        ) : CallbackData(callback)
 
         class Camera(
             callback: (Result<android.graphics.Bitmap>) -> Unit,
-            val outputUri: Uri
+            val outputUri: Uri,
+            val maxWidth: Int,
+            val maxHeight: Int,
         ) : CallbackData(callback)
     }
 
