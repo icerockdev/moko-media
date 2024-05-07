@@ -32,7 +32,8 @@ internal class MediaPickerControllerImpl(
 
     private var photoFilePath: String? = null
 
-    private val imagePickerDelegate = ImagePickerDelegate()
+    private val galleryPickerDelegate = GalleryPickerDelegate()
+    private val cameraPickerDelegate = CameraPickerDelegate()
     private val mediaPickerDelegate = MediaPickerDelegate()
     private val filePickerDelegate = FilePickerDelegate()
 
@@ -40,7 +41,8 @@ internal class MediaPickerControllerImpl(
         this.activityHolder.value = activity
         permissionsController.bind(activity)
 
-        imagePickerDelegate.bind(activity)
+        galleryPickerDelegate.bind(activity)
+        cameraPickerDelegate.bind(activity)
         mediaPickerDelegate.bind(activity)
         filePickerDelegate.bind(activity)
 
@@ -74,16 +76,16 @@ internal class MediaPickerControllerImpl(
 
         val outputUri = createPhotoUri()
 
-        val bitmap = suspendCoroutine<android.graphics.Bitmap> { continuation ->
+        val bitmap = suspendCoroutine { continuation ->
             val action: (Result<android.graphics.Bitmap>) -> Unit = { continuation.resumeWith(it) }
             when (source) {
-                MediaSource.GALLERY -> imagePickerDelegate.pickGalleryImage(
+                MediaSource.GALLERY -> galleryPickerDelegate.pick(
                     maxWidth,
                     maxHeight,
                     action,
                 )
 
-                MediaSource.CAMERA -> imagePickerDelegate.pickCameraImage(
+                MediaSource.CAMERA -> cameraPickerDelegate.pick(
                     maxWidth,
                     maxHeight,
                     action,
@@ -113,16 +115,16 @@ internal class MediaPickerControllerImpl(
 
         return suspendCoroutine { continuation ->
             val action: (Result<Media>) -> Unit = { continuation.resumeWith(it) }
-            mediaPickerDelegate.pickMedia(action)
+            mediaPickerDelegate.pick(action)
         }
     }
 
     override suspend fun pickFiles(): FileMedia {
         permissionsController.providePermission(Permission.STORAGE)
 
-        val path = suspendCoroutine<FileMedia> { continuation ->
+        val path = suspendCoroutine { continuation ->
             val action: (Result<FileMedia>) -> Unit = { continuation.resumeWith(it) }
-            filePickerDelegate.pickFile(action)
+            filePickerDelegate.pick(action)
         }
 
         return path

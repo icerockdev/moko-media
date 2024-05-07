@@ -6,68 +6,61 @@ package dev.icerock.moko.media.picker
 
 import android.annotation.SuppressLint
 import android.content.ContentResolver
+import android.content.Context
 import android.provider.OpenableColumns
-import androidx.activity.ComponentActivity
 import androidx.activity.result.ActivityResultLauncher
-import androidx.activity.result.ActivityResultRegistryOwner
+import androidx.activity.result.ActivityResultRegistry
 import androidx.activity.result.contract.ActivityResultContracts
 import dev.icerock.moko.media.FileMedia
-import kotlinx.coroutines.flow.MutableStateFlow
 import java.io.File
 
-internal class FilePickerDelegate {
+internal class FilePickerDelegate :
+    PickerDelegate<FilePickerDelegate.CallbackData, Array<String>>() {
 
-    private var callback: CallbackData? = null
+    override fun registerActivityResult(
+        context: Context,
+        activityResultRegistry: ActivityResultRegistry
+    ): ActivityResultLauncher<Array<String>> = activityResultRegistry.register(
+        PICK_FILE_KEY,
+        ActivityResultContracts.OpenDocument(),
+    ) { uri ->
+        val callbackData = callback ?: return@register
+        callback = null
 
-    private val filePickerLauncherHolder =
-        MutableStateFlow<ActivityResultLauncher<Array<String>>?>(null)
+        val callback = callbackData.callback
 
-    fun bind(activity: ComponentActivity) {
-        val activityResultRegistryOwner = activity as ActivityResultRegistryOwner
-        val activityResultRegistry = activityResultRegistryOwner.activityResultRegistry
-
-        filePickerLauncherHolder.value = activityResultRegistry.register(
-            PICK_FILE_KEY,
-            ActivityResultContracts.OpenDocument(),
-        ) { uri ->
-            val callbackData = callback ?: return@register
-            callback = null
-
-            val callback = callbackData.callback
-
-            if (uri == null) {
-                callback.invoke(Result.failure(CanceledException()))
-                return@register
-            }
-
-            val path = uri.path
-            if (path == null) {
-                callback.invoke(Result.failure(java.lang.IllegalStateException("File is null")))
-                return@register
-            }
-
-            @SuppressLint("Range")
-            val fileNameWithExtension = if (uri.scheme == ContentResolver.SCHEME_CONTENT) {
-                val cursor = activity.contentResolver.query(uri, null, null, null, null)
-                cursor?.use {
-                    if (!it.moveToFirst()) null
-                    else it.getString(it.getColumnIndex(OpenableColumns.DISPLAY_NAME))
-                }
-            } else null
-
-            val file = File(path)
-            val name = file.name
-            val result = Result.success(
-                FileMedia(
-                    fileNameWithExtension ?: name,
-                    uri.toString(),
-                )
-            )
-            callback.invoke(result)
+        if (uri == null) {
+            callback.invoke(Result.failure(CanceledException()))
+            return@register
         }
+
+        val path = uri.path
+        if (path == null) {
+            callback.invoke(Result.failure(java.lang.IllegalStateException("File is null")))
+            return@register
+        }
+
+        @SuppressLint("Range")
+        val fileNameWithExtension = if (uri.scheme == ContentResolver.SCHEME_CONTENT) {
+            val cursor = context.contentResolver.query(uri, null, null, null, null)
+            cursor?.use {
+                if (!it.moveToFirst()) null
+                else it.getString(it.getColumnIndex(OpenableColumns.DISPLAY_NAME))
+            }
+        } else null
+
+        val file = File(path)
+        val name = file.name
+        val result = Result.success(
+            FileMedia(
+                fileNameWithExtension ?: name,
+                uri.toString(),
+            )
+        )
+        callback.invoke(result)
     }
 
-    fun pickFile(callback: (Result<FileMedia>) -> Unit) {
+    fun pick(callback: (Result<FileMedia>) -> Unit) {
         this.callback?.let {
             it.callback.invoke(Result.failure(IllegalStateException("Callback should be null")))
             this.callback = null
@@ -75,7 +68,7 @@ internal class FilePickerDelegate {
 
         this.callback = CallbackData(callback)
 
-        filePickerLauncherHolder.value?.launch(
+        pickerLauncherHolder.value?.launch(
             arrayOf(
                 "*/*",
             )

@@ -9,54 +9,62 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.ActivityResultRegistry
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
-import dev.icerock.moko.media.Media
-import dev.icerock.moko.media.MediaFactory
-import kotlinx.coroutines.flow.MutableStateFlow
 
-internal class MediaPickerDelegate :
-    PickerDelegate<MediaPickerDelegate.CallbackData, PickVisualMediaRequest>() {
+internal class GalleryPickerDelegate :
+    ImagePickerDelegate<GalleryPickerDelegate.CallbackData, PickVisualMediaRequest>() {
 
     override fun registerActivityResult(
         context: Context,
         activityResultRegistry: ActivityResultRegistry
     ): ActivityResultLauncher<PickVisualMediaRequest> = activityResultRegistry.register(
-        PICK_MEDIA_KEY,
+        PICK_GALLERY_IMAGE_KEY,
         ActivityResultContracts.PickVisualMedia(),
     ) { uri ->
         val callbackData = callback ?: return@register
         callback = null
 
-        val callback = callbackData.callback
-
         if (uri == null) {
-            callback.invoke(Result.failure(CanceledException()))
+            callbackData.callback.invoke(Result.failure(CanceledException()))
             return@register
         }
 
-        val result = kotlin.runCatching {
-            MediaFactory.create(context, uri)
-        }
-        callback.invoke(result)
+        processResult(
+            context = context,
+            callback = callbackData.callback,
+            uri = uri,
+            maxImageWidth = callbackData.maxWidth,
+            maxImageHeight = callbackData.maxHeight,
+        )
     }
 
-    private val mediaPickerLauncherHolder =
-        MutableStateFlow<ActivityResultLauncher<PickVisualMediaRequest>?>(null)
-
-    fun pick(callback: (Result<Media>) -> Unit) {
+    fun pick(
+        maxWidth: Int,
+        maxHeight: Int,
+        callback: (Result<android.graphics.Bitmap>) -> Unit,
+    ) {
         this.callback?.let {
             it.callback.invoke(Result.failure(IllegalStateException("Callback should be null")))
             this.callback = null
         }
-        this.callback = CallbackData(callback)
+
+        this.callback = CallbackData(
+            callback,
+            maxWidth,
+            maxHeight,
+        )
 
         pickerLauncherHolder.value?.launch(
-            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageAndVideo)
+            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
         )
     }
 
-    class CallbackData(val callback: (Result<Media>) -> Unit)
+    class CallbackData(
+        val callback: (Result<android.graphics.Bitmap>) -> Unit,
+        val maxWidth: Int,
+        val maxHeight: Int,
+    )
 
     companion object {
-        private const val PICK_MEDIA_KEY = "PickMediaKey"
+        private const val PICK_GALLERY_IMAGE_KEY = "PickGalleryImageKey"
     }
 }
