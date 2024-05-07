@@ -11,7 +11,6 @@ import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import dev.icerock.moko.media.Media
 import dev.icerock.moko.media.MediaFactory
-import kotlinx.coroutines.flow.MutableStateFlow
 
 internal class MediaPickerDelegate :
     PickerDelegate<MediaPickerDelegate.CallbackData, PickVisualMediaRequest>() {
@@ -38,9 +37,6 @@ internal class MediaPickerDelegate :
         }
         callback.invoke(result)
     }
-
-    private val mediaPickerLauncherHolder =
-        MutableStateFlow<ActivityResultLauncher<PickVisualMediaRequest>?>(null)
 
     fun pick(callback: (Result<Media>) -> Unit) {
         this.callback?.let {
