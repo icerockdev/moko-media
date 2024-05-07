@@ -32,7 +32,7 @@ class ImageSelectionViewModel(
     }
 
     @Suppress("TooGenericExceptionCaught")
-    fun selectFile() {
+    private fun selectFile() {
         viewModelScope.launch {
             @Suppress("SwallowedException")
             try {
