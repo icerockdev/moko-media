@@ -1,10 +1,14 @@
+/*
+ * Copyright 2024 IceRock MAG Inc. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package dev.icerock.moko.media.picker
 
 import android.content.Context
 import android.net.Uri
 import dev.icerock.moko.media.BitmapUtils
 
-internal abstract class ImagePickerDelegate<C, I> : PickerDelegate<C, I>() {
+internal abstract class ImagePickerDelegate<C : PickerDelegate.CallbackData<D>, I, D> : PickerDelegate<C, I, D>() {
 
     @Suppress("ReturnCount")
     protected fun processResult(

@@ -13,7 +13,7 @@ import dev.icerock.moko.media.Media
 import dev.icerock.moko.media.MediaFactory
 
 internal class MediaPickerDelegate :
-    PickerDelegate<MediaPickerDelegate.CallbackData, PickVisualMediaRequest>() {
+    PickerDelegate<MediaPickerDelegate.MediaPickerCallbackData, PickVisualMediaRequest, Media>() {
 
     override fun registerActivityResult(
         context: Context,
@@ -38,19 +38,19 @@ internal class MediaPickerDelegate :
         callback.invoke(result)
     }
 
-    fun pick(callback: (Result<Media>) -> Unit) {
-        this.callback?.let {
-            it.callback.invoke(Result.failure(IllegalStateException("Callback should be null")))
-            this.callback = null
-        }
-        this.callback = CallbackData(callback)
+    override fun createCallback(
+        callback: (Result<Media>) -> Unit,
+    ): MediaPickerCallbackData = MediaPickerCallbackData(callback)
 
+    override fun launchActivityResult() {
         pickerLauncherHolder.value?.launch(
             PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageAndVideo)
         )
     }
 
-    class CallbackData(val callback: (Result<Media>) -> Unit)
+    class MediaPickerCallbackData(
+        override val callback: (Result<Media>) -> Unit,
+    ) : CallbackData<Media>()
 
     companion object {
         private const val PICK_MEDIA_KEY = "PickMediaKey"

@@ -5,13 +5,14 @@
 package dev.icerock.moko.media.picker
 
 import android.content.Context
+import android.graphics.Bitmap
 import android.net.Uri
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.ActivityResultRegistry
 import androidx.activity.result.contract.ActivityResultContracts
 
 internal class CameraPickerDelegate :
-    ImagePickerDelegate<CameraPickerDelegate.CallbackData, Uri>() {
+    ImagePickerDelegate<CameraPickerDelegate.CameraPickerCallbackData, Uri, Bitmap>() {
 
     override fun registerActivityResult(
         context: Context,
@@ -40,14 +41,12 @@ internal class CameraPickerDelegate :
     fun pick(
         maxWidth: Int,
         maxHeight: Int,
-        callback: (Result<android.graphics.Bitmap>) -> Unit,
+        callback: (Result<Bitmap>) -> Unit,
         outputUri: Uri,
     ) {
-        this.callback?.let {
-            it.callback.invoke(Result.failure(IllegalStateException("Callback should be null")))
-            this.callback = null
-        }
-        this.callback = CallbackData(
+        super.pick(callback)
+
+        this.callback = CameraPickerCallbackData(
             callback,
             outputUri,
             maxWidth,
@@ -59,12 +58,23 @@ internal class CameraPickerDelegate :
         )
     }
 
-    class CallbackData(
-        val callback: (Result<android.graphics.Bitmap>) -> Unit,
+    override fun createCallback(
+        callback: (Result<Bitmap>) -> Unit,
+    ): CameraPickerCallbackData = CameraPickerCallbackData(
+        callback,
+        Uri.EMPTY,
+        0,
+        0,
+    )
+
+    override fun launchActivityResult() = Unit
+
+    class CameraPickerCallbackData(
+        override val callback: (Result<Bitmap>) -> Unit,
         val outputUri: Uri,
         val maxWidth: Int,
         val maxHeight: Int,
-    )
+    ) : CallbackData<Bitmap>()
 
     companion object {
         private const val PICK_CAMERA_IMAGE_KEY = "PickCameraImageKey"

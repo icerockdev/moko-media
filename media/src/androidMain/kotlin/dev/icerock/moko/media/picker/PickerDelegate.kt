@@ -18,7 +18,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
  * @param <C> type of callback
  * @param <I> type of the input required to launch
  */
-internal abstract class PickerDelegate<C, I> {
+internal abstract class PickerDelegate<C : PickerDelegate.CallbackData<D>, I, D> {
 
     protected var callback: C? = null
 
@@ -49,4 +49,25 @@ internal abstract class PickerDelegate<C, I> {
         context: Context,
         activityResultRegistry: ActivityResultRegistry,
     ): ActivityResultLauncher<I>
+
+    fun pick(
+        callback: (Result<D>) -> Unit,
+    ) {
+        this.callback?.let {
+            it.callback.invoke(Result.failure(IllegalStateException("Callback should be null")))
+            this.callback = null
+        }
+
+        this.callback = createCallback(callback)
+
+        launchActivityResult()
+    }
+
+    abstract fun createCallback(callback: (Result<D>) -> Unit): C
+
+    abstract fun launchActivityResult()
+
+    abstract class CallbackData<D> {
+        abstract val callback: (Result<D>) -> Unit
+    }
 }

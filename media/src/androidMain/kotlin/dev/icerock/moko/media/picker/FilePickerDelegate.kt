@@ -15,7 +15,7 @@ import dev.icerock.moko.media.FileMedia
 import java.io.File
 
 internal class FilePickerDelegate :
-    PickerDelegate<FilePickerDelegate.CallbackData, Array<String>>() {
+    PickerDelegate<FilePickerDelegate.FilePickerCallbackData, Array<String>, FileMedia>() {
 
     override fun registerActivityResult(
         context: Context,
@@ -60,14 +60,11 @@ internal class FilePickerDelegate :
         callback.invoke(result)
     }
 
-    fun pick(callback: (Result<FileMedia>) -> Unit) {
-        this.callback?.let {
-            it.callback.invoke(Result.failure(IllegalStateException("Callback should be null")))
-            this.callback = null
-        }
+    override fun createCallback(
+        callback: (Result<FileMedia>) -> Unit,
+    ): FilePickerCallbackData = FilePickerCallbackData(callback)
 
-        this.callback = CallbackData(callback)
-
+    override fun launchActivityResult() {
         pickerLauncherHolder.value?.launch(
             arrayOf(
                 "*/*",
@@ -75,7 +72,9 @@ internal class FilePickerDelegate :
         )
     }
 
-    class CallbackData(val callback: (Result<FileMedia>) -> Unit)
+    class FilePickerCallbackData(
+        override val callback: (Result<FileMedia>) -> Unit
+    ) : CallbackData<FileMedia>()
 
     companion object {
         private const val PICK_FILE_KEY = "PickFileKey"
