@@ -85,8 +85,7 @@ val viewModel = getViewModel {
 }
 
 viewModel.mediaController.bind(
-    lifecycle,
-    supportFragmentManager
+    activity
 ) // permissioncController bind automatically
 ```
 

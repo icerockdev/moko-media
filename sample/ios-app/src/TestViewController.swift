@@ -42,6 +42,6 @@ class TestViewController: UIViewController {
     }
     
     @IBAction private func onPickFileTapped() {
-        viewModel.selectFile()
+        viewModel.onFilePressed()
     }
 }

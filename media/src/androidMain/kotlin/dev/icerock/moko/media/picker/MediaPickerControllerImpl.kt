@@ -4,41 +4,58 @@
 
 package dev.icerock.moko.media.picker
 
-import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentManager
+import android.app.Activity
+import android.net.Uri
+import android.os.Environment
+import androidx.activity.ComponentActivity
+import androidx.core.content.FileProvider
 import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleObserver
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.OnLifecycleEvent
 import dev.icerock.moko.media.Bitmap
 import dev.icerock.moko.media.FileMedia
 import dev.icerock.moko.media.Media
 import dev.icerock.moko.permissions.Permission
 import dev.icerock.moko.permissions.PermissionsController
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withTimeoutOrNull
+import java.io.File
 import kotlin.coroutines.suspendCoroutine
 
 internal class MediaPickerControllerImpl(
     override val permissionsController: PermissionsController,
-    private val mediaPickerFragmentTag: String,
-    private val imagePickerFragmentTag: String,
-    private val filePickerFragmentTag: String
 ) : MediaPickerController {
-    var fragmentManager: FragmentManager? = null
 
-    override fun bind(lifecycle: Lifecycle, fragmentManager: FragmentManager) {
-        permissionsController.bind(lifecycle, fragmentManager)
+    private val activityHolder = MutableStateFlow<Activity?>(null)
 
-        this.fragmentManager = fragmentManager
+    private var photoFilePath: String? = null
 
-        val observer = object : LifecycleObserver {
+    private val galleryPickerDelegate = GalleryPickerDelegate()
+    private val cameraPickerDelegate = CameraPickerDelegate()
+    private val mediaPickerDelegate = MediaPickerDelegate()
+    private val filePickerDelegate = FilePickerDelegate()
 
-            @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
-            fun onDestroyed(source: LifecycleOwner) {
-                this@MediaPickerControllerImpl.fragmentManager = null
-                source.lifecycle.removeObserver(this)
+    override fun bind(activity: ComponentActivity) {
+        this.activityHolder.value = activity
+        permissionsController.bind(activity)
+
+        galleryPickerDelegate.bind(activity)
+        cameraPickerDelegate.bind(activity)
+        mediaPickerDelegate.bind(activity)
+        filePickerDelegate.bind(activity)
+
+        val observer = object : LifecycleEventObserver {
+
+            override fun onStateChanged(source: LifecycleOwner, event: Lifecycle.Event) {
+                if (event == Lifecycle.Event.ON_DESTROY) {
+                    this@MediaPickerControllerImpl.activityHolder.value = null
+                    source.lifecycle.removeObserver(this)
+                }
             }
         }
-        lifecycle.addObserver(observer)
+        activity.lifecycle.addObserver(observer)
     }
 
     override suspend fun pickImage(source: MediaSource): Bitmap {
@@ -51,84 +68,85 @@ internal class MediaPickerControllerImpl(
      * (Look here: https://youtrack.jetbrains.com/issue/KT-37331)
      */
     override suspend fun pickImage(source: MediaSource, maxWidth: Int, maxHeight: Int): Bitmap {
-        val fragmentManager =
-            fragmentManager ?: error("can't pick image without active window")
 
+        @Suppress("NewApi")
         source.requiredPermissions().forEach { permission ->
             permissionsController.providePermission(permission)
         }
 
-        val currentFragment: Fragment? = fragmentManager.findFragmentByTag(imagePickerFragmentTag)
-        val imagePickerFragment: ImagePickerFragment = if (currentFragment != null) {
-            currentFragment as ImagePickerFragment
-        } else {
-            ImagePickerFragment.newInstance(maxWidth, maxHeight).also {
-                fragmentManager
-                    .beginTransaction()
-                    .add(it, imagePickerFragmentTag)
-                    .commitNow()
-            }
-        }
+        val outputUri = createPhotoUri()
 
-        val bitmap = suspendCoroutine<android.graphics.Bitmap> { continuation ->
+        val bitmap = suspendCoroutine { continuation ->
             val action: (Result<android.graphics.Bitmap>) -> Unit = { continuation.resumeWith(it) }
             when (source) {
-                MediaSource.GALLERY -> imagePickerFragment.pickGalleryImage(action)
-                MediaSource.CAMERA -> imagePickerFragment.pickCameraImage(action)
+                MediaSource.GALLERY -> galleryPickerDelegate.pick(
+                    callback = action,
+                    mediaOptions = GalleryPickerDelegate.GalleryPickerMediaOptions(
+                        maxWidth = maxWidth,
+                        maxHeight = maxHeight,
+                    )
+                )
+
+                MediaSource.CAMERA -> cameraPickerDelegate.pick(
+                    callback = action,
+                    mediaOptions = CameraPickerDelegate.CameraPickerMediaOptions(
+                        outputUri = outputUri,
+                        maxWidth = maxWidth,
+                        maxHeight = maxHeight,
+                    )
+                )
             }
         }
 
         return Bitmap(bitmap)
     }
 
+    private suspend fun createPhotoUri(): Uri {
+        val context = awaitActivity()
+        val filesDir = context.getExternalFilesDir(Environment.DIRECTORY_PICTURES)
+        val tmpFile = File(filesDir, DEFAULT_FILE_NAME)
+        photoFilePath = tmpFile.absolutePath
+
+        return FileProvider.getUriForFile(
+            context,
+            context.applicationContext.packageName + FILE_PROVIDER_SUFFIX,
+            tmpFile
+        )
+    }
+
     override suspend fun pickMedia(): Media {
-        val fragmentManager =
-            fragmentManager ?: error("can't pick image without active window")
-
         permissionsController.providePermission(Permission.GALLERY)
-
-        val currentFragment: Fragment? = fragmentManager.findFragmentByTag(mediaPickerFragmentTag)
-        val pickerFragment: MediaPickerFragment = if (currentFragment != null) {
-            currentFragment as MediaPickerFragment
-        } else {
-            MediaPickerFragment().apply {
-                fragmentManager
-                    .beginTransaction()
-                    .add(this, mediaPickerFragmentTag)
-                    .commitNow()
-            }
-        }
 
         return suspendCoroutine { continuation ->
             val action: (Result<Media>) -> Unit = { continuation.resumeWith(it) }
-            pickerFragment.pickMedia(action)
+            mediaPickerDelegate.pick(action)
         }
     }
 
     override suspend fun pickFiles(): FileMedia {
-        val fragmentManager =
-            fragmentManager ?: error("can't pick image without active window")
-
         permissionsController.providePermission(Permission.STORAGE)
 
-        val currentFragment: Fragment? = fragmentManager.findFragmentByTag(filePickerFragmentTag)
-        val pickerFragment: FilePickerFragment = if (currentFragment != null) {
-            currentFragment as FilePickerFragment
-        } else {
-            FilePickerFragment().apply {
-                fragmentManager
-                    .beginTransaction()
-                    .add(this, filePickerFragmentTag)
-                    .commitNow()
-            }
-        }
-
-        val path = suspendCoroutine<FileMedia> { continuation ->
+        val path = suspendCoroutine { continuation ->
             val action: (Result<FileMedia>) -> Unit = { continuation.resumeWith(it) }
-            pickerFragment.pickFile(action)
+            filePickerDelegate.pick(action)
         }
 
         return path
+    }
+
+    private suspend fun awaitActivity(): Activity {
+        val activity = activityHolder.value
+        if (activity != null) return activity
+
+        return withTimeoutOrNull(AWAIT_ACTIVITY_TIMEOUT_DURATION_MS) {
+            activityHolder.filterNotNull().first()
+        } ?: error(
+            "activity is null, `bind` function was never called," +
+                    " consider calling mediaPickerController.bind(activity)" +
+                    " or BindMediaPickerEffect(mediaPickerController) in the composable function," +
+                    " check the documentation for more info: " +
+                    "https://github.com/icerockdev/moko-media/blob/master/README.md"
+        )
     }
 
     private fun MediaSource.requiredPermissions(): List<Permission> {
@@ -136,5 +154,11 @@ internal class MediaPickerControllerImpl(
             MediaSource.GALLERY -> listOf(Permission.GALLERY)
             MediaSource.CAMERA -> listOf(Permission.CAMERA)
         }
+    }
+
+    companion object {
+        private const val AWAIT_ACTIVITY_TIMEOUT_DURATION_MS = 2000L
+        private const val DEFAULT_FILE_NAME = "image.png"
+        private const val FILE_PROVIDER_SUFFIX = ".moko.media.provider"
     }
 }
