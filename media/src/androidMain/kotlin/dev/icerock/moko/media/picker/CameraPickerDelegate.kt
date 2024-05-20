@@ -38,43 +38,42 @@ internal class CameraPickerDelegate :
         )
     }
 
-    fun pick(
-        maxWidth: Int,
-        maxHeight: Int,
+    override fun createCallback(
         callback: (Result<Bitmap>) -> Unit,
-        outputUri: Uri,
-    ) {
-        super.pick(callback)
-
-        this.callback = CameraPickerCallbackData(
+        mediaOptions: MediaOptions?
+    ): CameraPickerCallbackData {
+        val cameraPickerMediaOptions = mediaOptions as? CameraPickerMediaOptions
+        val outputUri = cameraPickerMediaOptions?.outputUri ?: Uri.EMPTY
+        val maxWidth = cameraPickerMediaOptions?.maxWidth ?: 0
+        val maxHeight = cameraPickerMediaOptions?.maxHeight ?: 0
+        return CameraPickerCallbackData(
             callback,
             outputUri,
             maxWidth,
             maxHeight,
         )
+    }
 
+    override fun launchActivityResult(mediaOptions: MediaOptions?) {
+        val cameraPickerMediaOptions = mediaOptions as? CameraPickerMediaOptions
+        val outputUri = cameraPickerMediaOptions?.outputUri ?: Uri.EMPTY
         pickerLauncherHolder.value?.launch(
             outputUri
         )
     }
-
-    override fun createCallback(
-        callback: (Result<Bitmap>) -> Unit,
-    ): CameraPickerCallbackData = CameraPickerCallbackData(
-        callback,
-        Uri.EMPTY,
-        0,
-        0,
-    )
-
-    override fun launchActivityResult() = Unit
 
     class CameraPickerCallbackData(
         override val callback: (Result<Bitmap>) -> Unit,
         val outputUri: Uri,
         val maxWidth: Int,
         val maxHeight: Int,
-    ) : CallbackData<Bitmap>()
+    ) : CallbackData<Bitmap>
+
+    class CameraPickerMediaOptions(
+        val outputUri: Uri,
+        val maxWidth: Int,
+        val maxHeight: Int,
+    ) : MediaOptions
 
     companion object {
         private const val PICK_CAMERA_IMAGE_KEY = "PickCameraImageKey"

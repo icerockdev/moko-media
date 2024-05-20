@@ -80,16 +80,20 @@ internal class MediaPickerControllerImpl(
             val action: (Result<android.graphics.Bitmap>) -> Unit = { continuation.resumeWith(it) }
             when (source) {
                 MediaSource.GALLERY -> galleryPickerDelegate.pick(
-                    maxWidth,
-                    maxHeight,
-                    action,
+                    callback = action,
+                    mediaOptions = GalleryPickerDelegate.GalleryPickerMediaOptions(
+                        maxWidth = maxWidth,
+                        maxHeight = maxHeight,
+                    )
                 )
 
                 MediaSource.CAMERA -> cameraPickerDelegate.pick(
-                    maxWidth,
-                    maxHeight,
-                    action,
-                    outputUri,
+                    callback = action,
+                    mediaOptions = CameraPickerDelegate.CameraPickerMediaOptions(
+                        outputUri = outputUri,
+                        maxWidth = maxWidth,
+                        maxHeight = maxHeight,
+                    )
                 )
             }
         }

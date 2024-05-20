@@ -62,9 +62,10 @@ internal class FilePickerDelegate :
 
     override fun createCallback(
         callback: (Result<FileMedia>) -> Unit,
+        mediaOptions: MediaOptions?
     ): FilePickerCallbackData = FilePickerCallbackData(callback)
 
-    override fun launchActivityResult() {
+    override fun launchActivityResult(mediaOptions: MediaOptions?) {
         pickerLauncherHolder.value?.launch(
             arrayOf(
                 "*/*",
@@ -74,7 +75,7 @@ internal class FilePickerDelegate :
 
     class FilePickerCallbackData(
         override val callback: (Result<FileMedia>) -> Unit
-    ) : CallbackData<FileMedia>()
+    ) : CallbackData<FileMedia>
 
     companion object {
         private const val PICK_FILE_KEY = "PickFileKey"

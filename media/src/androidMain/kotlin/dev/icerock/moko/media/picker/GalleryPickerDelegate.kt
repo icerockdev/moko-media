@@ -38,39 +38,36 @@ internal class GalleryPickerDelegate :
         )
     }
 
-    fun pick(
-        maxWidth: Int,
-        maxHeight: Int,
+    override fun createCallback(
         callback: (Result<Bitmap>) -> Unit,
-    ) {
-        super.pick(callback)
-
-        this.callback = GalleryPickerCallbackData(
+        mediaOptions: MediaOptions?
+    ): GalleryPickerCallbackData {
+        val galleryPickerMediaOptions = mediaOptions as? GalleryPickerMediaOptions
+        val maxWidth = galleryPickerMediaOptions?.maxWidth ?: 0
+        val maxHeight = galleryPickerMediaOptions?.maxHeight ?: 0
+        return GalleryPickerCallbackData(
             callback,
             maxWidth,
             maxHeight,
         )
+    }
 
+    override fun launchActivityResult(mediaOptions: MediaOptions?) {
         pickerLauncherHolder.value?.launch(
             PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
         )
     }
 
-    override fun createCallback(
-        callback: (Result<Bitmap>) -> Unit,
-    ): GalleryPickerCallbackData = GalleryPickerCallbackData(
-        callback,
-        0,
-        0,
-    )
-
-    override fun launchActivityResult() = Unit
-
     class GalleryPickerCallbackData(
         override val callback: (Result<Bitmap>) -> Unit,
         val maxWidth: Int,
         val maxHeight: Int,
-    ) : CallbackData<Bitmap>()
+    ) : CallbackData<Bitmap>
+
+    class GalleryPickerMediaOptions(
+        val maxWidth: Int,
+        val maxHeight: Int,
+    ) : MediaOptions
 
     companion object {
         private const val PICK_GALLERY_IMAGE_KEY = "PickGalleryImageKey"

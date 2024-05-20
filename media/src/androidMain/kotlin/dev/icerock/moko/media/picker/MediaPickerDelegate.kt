@@ -40,9 +40,10 @@ internal class MediaPickerDelegate :
 
     override fun createCallback(
         callback: (Result<Media>) -> Unit,
+        mediaOptions: MediaOptions?
     ): MediaPickerCallbackData = MediaPickerCallbackData(callback)
 
-    override fun launchActivityResult() {
+    override fun launchActivityResult(mediaOptions: MediaOptions?) {
         pickerLauncherHolder.value?.launch(
             PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageAndVideo)
         )
@@ -50,7 +51,7 @@ internal class MediaPickerDelegate :
 
     class MediaPickerCallbackData(
         override val callback: (Result<Media>) -> Unit,
-    ) : CallbackData<Media>()
+    ) : CallbackData<Media>
 
     companion object {
         private const val PICK_MEDIA_KEY = "PickMediaKey"

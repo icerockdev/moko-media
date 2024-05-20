@@ -52,22 +52,28 @@ internal abstract class PickerDelegate<C : PickerDelegate.CallbackData<D>, I, D>
 
     fun pick(
         callback: (Result<D>) -> Unit,
+        mediaOptions: MediaOptions? = null,
     ) {
         this.callback?.let {
             it.callback.invoke(Result.failure(IllegalStateException("Callback should be null")))
             this.callback = null
         }
 
-        this.callback = createCallback(callback)
+        this.callback = createCallback(callback, mediaOptions)
 
-        launchActivityResult()
+        launchActivityResult(mediaOptions)
     }
 
-    abstract fun createCallback(callback: (Result<D>) -> Unit): C
+    abstract fun createCallback(
+        callback: (Result<D>) -> Unit,
+        mediaOptions: MediaOptions?,
+    ): C
 
-    abstract fun launchActivityResult()
+    abstract fun launchActivityResult(mediaOptions: MediaOptions?)
 
-    abstract class CallbackData<D> {
-        abstract val callback: (Result<D>) -> Unit
+    interface CallbackData<D> {
+        val callback: (Result<D>) -> Unit
     }
+
+    interface MediaOptions
 }
