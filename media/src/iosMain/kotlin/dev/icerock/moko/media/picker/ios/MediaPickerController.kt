@@ -15,6 +15,8 @@ import dev.icerock.moko.media.picker.ImagePickerDelegateToContinuation
 import dev.icerock.moko.media.picker.MediaSource
 import dev.icerock.moko.permissions.Permission
 import dev.icerock.moko.permissions.PermissionsController
+import kotlinx.cinterop.ExperimentalForeignApi
+import platform.CoreFoundation.CFTypeRef
 import platform.CoreServices.kUTTypeData
 import platform.CoreServices.kUTTypeImage
 import platform.CoreServices.kUTTypeMovie
@@ -155,10 +157,11 @@ class MediaPickerController(
         return media
     }
 
+    @OptIn(ExperimentalForeignApi::class)
     internal companion object {
-        val kVideoType = CFBridgingRelease(kUTTypeVideo) as String
-        val kMovieType = CFBridgingRelease(kUTTypeMovie) as String
-        val kImageType = CFBridgingRelease(kUTTypeImage) as String
-        val kStandardFileTypesId = CFBridgingRelease(kUTTypeData) as String
+        val kVideoType = CFBridgingRelease(kUTTypeVideo as CFTypeRef?) as String
+        val kMovieType = CFBridgingRelease(kUTTypeMovie as CFTypeRef?) as String
+        val kImageType = CFBridgingRelease(kUTTypeImage as CFTypeRef?) as String
+        val kStandardFileTypesId = CFBridgingRelease(kUTTypeData as CFTypeRef?) as String
     }
 }

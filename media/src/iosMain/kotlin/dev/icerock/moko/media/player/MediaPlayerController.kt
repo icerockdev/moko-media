@@ -4,6 +4,7 @@
 
 package dev.icerock.moko.media.player
 
+import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.cValue
 import platform.AVFoundation.AVPlayer
 import platform.AVFoundation.AVPlayerItemDidPlayToEndTimeNotification
@@ -72,6 +73,7 @@ actual class MediaPlayerController {
         player?.pause()
     }
 
+    @OptIn(ExperimentalForeignApi::class)
     actual fun stop() {
         player?.run {
             pause()
