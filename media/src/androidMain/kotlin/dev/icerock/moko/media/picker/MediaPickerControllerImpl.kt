@@ -132,7 +132,7 @@ internal class MediaPickerControllerImpl(
 
     private fun MediaSource.requiredPermissions(): List<Permission> {
         return when (this) {
-            MediaSource.GALLERY -> listOf(Permission.GALLERY)
+            MediaSource.GALLERY -> listOf()
             MediaSource.CAMERA -> listOf(Permission.CAMERA)
         }
     }
