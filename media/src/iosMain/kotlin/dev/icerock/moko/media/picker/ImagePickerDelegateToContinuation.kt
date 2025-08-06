@@ -8,6 +8,7 @@ import dev.icerock.moko.media.Bitmap
 import dev.icerock.moko.media.Media
 import dev.icerock.moko.media.MediaType
 import dev.icerock.moko.media.picker.ios.MediaPickerController
+import kotlinx.cinterop.ExperimentalForeignApi
 import platform.AVFoundation.AVAsset
 import platform.AVFoundation.AVAssetImageGenerator
 import platform.AVFoundation.AVURLAsset
@@ -26,6 +27,7 @@ import platform.darwin.NSObject
 import kotlin.coroutines.Continuation
 import kotlin.random.Random
 
+@OptIn(ExperimentalForeignApi::class)
 internal class ImagePickerDelegateToContinuation constructor(
     private val continuation: Continuation<Media>
 ) : NSObject(), UINavigationControllerDelegateProtocol, UIImagePickerControllerDelegateProtocol {

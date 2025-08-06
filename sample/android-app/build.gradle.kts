@@ -4,6 +4,7 @@ plugins {
 }
 
 android {
+    namespace = "com.icerockdev"
     buildFeatures.viewBinding = true
 
     defaultConfig {

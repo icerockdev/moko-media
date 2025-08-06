@@ -40,14 +40,16 @@ object BitmapUtils {
     fun getNormalizedBitmap(
         bitmapStream: InputStream,
         orientation: Int,
-        sampleSize: Int? = null
+        sampleSize: Int? = null,
     ): Bitmap {
         val bitmapOptions = if (sampleSize != null) {
             BitmapFactory.Options().apply {
                 inJustDecodeBounds = false
                 inSampleSize = sampleSize
             }
-        } else null
+        } else {
+            null
+        }
 
         val bitmap = BitmapFactory.decodeStream(bitmapStream, null, bitmapOptions)
             ?: throw IOException("Can't decode bitmap stream")
@@ -64,26 +66,17 @@ object BitmapUtils {
                 matrix.setRotate(90f)
                 matrix.postScale(-1f, 1f)
             }
+
             ExifInterface.ORIENTATION_TRANSVERSE -> {
                 matrix.setRotate(-90f)
                 matrix.postScale(-1f, 1f)
             }
+
             else -> return bitmap
         }
         val result = Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
         bitmap.recycle()
         return result
-    }
-
-    @Suppress("ForbiddenComment")
-    // TODO: unused
-    fun cloneRotated(bitmap: Bitmap, angle: Int): Bitmap {
-        if (angle != 0) {
-            val matrix = Matrix()
-            matrix.postRotate(angle.toFloat())
-            return Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
-        }
-        return bitmap
     }
 
     fun getResizedBitmap(bitmap: Bitmap, maxSize: Int = DEFAULT_MAX_SIZE): Bitmap {
@@ -102,7 +95,7 @@ object BitmapUtils {
     }
 
     fun getBitmapOptionsFromStream(
-        inputStream: InputStream
+        inputStream: InputStream,
     ): BitmapFactory.Options {
         return BitmapFactory.Options().apply {
             inJustDecodeBounds = true
@@ -110,31 +103,16 @@ object BitmapUtils {
         }
     }
 
-    @Suppress("ForbiddenComment")
-    // TODO: unused
-    fun getBitmapForStream(
-        inputStream: InputStream,
-        sampleSize: Int
-    ): Bitmap? {
-        val bitmapOptions = BitmapFactory.Options().apply {
-            inJustDecodeBounds = false
-            inSampleSize = sampleSize
-        }
-
-        return BitmapFactory.decodeStream(inputStream, null, bitmapOptions)
-    }
-
     fun calculateInSampleSize(
         options: BitmapFactory.Options,
         maxWidth: Int,
-        maxHeight: Int
+        maxHeight: Int,
     ): Int {
         val height: Int = options.outHeight
         val width: Int = options.outWidth
         var inSampleSize = 1
 
         if (height > maxHeight || width > maxWidth) {
-
             val halfHeight: Int = height / 2
             val halfWidth: Int = width / 2
 

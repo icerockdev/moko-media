@@ -9,6 +9,10 @@ plugins {
     id("dev.icerock.moko.gradle.detekt")
 }
 
+android {
+    namespace = "dev.icerock.moko.media.test"
+}
+
 dependencies {
     commonMainApi(projects.media)
 

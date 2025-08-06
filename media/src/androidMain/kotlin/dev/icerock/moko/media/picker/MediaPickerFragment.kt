@@ -48,7 +48,9 @@ class MediaPickerFragment : Fragment() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
-        val callbackData = codeCallbackMap[requestCode] ?: return
+        val callbackData: CallbackData? = codeCallbackMap[requestCode]
+        if (callbackData == null) return
+
         codeCallbackMap.remove(requestCode)
 
         val callback = callbackData.callback
@@ -81,7 +83,7 @@ class MediaPickerFragment : Fragment() {
             return
         }
 
-        val result = kotlin.runCatching {
+        val result = runCatching {
             MediaFactory.create(context, intentData)
         }
         callback.invoke(result)
