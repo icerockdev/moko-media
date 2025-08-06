@@ -45,6 +45,7 @@ class MediaPickerFragment : Fragment() {
         startActivityForResult(intent, requestCode)
     }
 
+    @Suppress("UnreachableCode")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 

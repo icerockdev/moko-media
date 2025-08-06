@@ -51,7 +51,7 @@ actual class Bitmap(val image: UIImage) {
         UIGraphicsBeginImageContextWithOptions(CGSizeMake(newWidth, newHeight), false, 0.0)
         image.drawInRect(CGRectMake(0.0, 0.0, newWidth, newHeight))
         val newImage = UIGraphicsGetImageFromCurrentImageContext()
-        UIGraphicsEndImageContext();
+        UIGraphicsEndImageContext()
 
         val imageData = UIImageJPEGRepresentation(newImage!!, COMPRESSION_QUALITY)
             ?: throw IllegalArgumentException("image data is null")

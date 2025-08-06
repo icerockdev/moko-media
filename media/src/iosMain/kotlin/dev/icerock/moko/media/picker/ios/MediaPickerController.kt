@@ -29,8 +29,10 @@ import platform.UIKit.UIImagePickerControllerSourceType
 import platform.UIKit.UIViewController
 import platform.UIKit.presentationController
 import kotlin.coroutines.suspendCoroutine
+import kotlin.experimental.ExperimentalNativeApi
 import kotlin.native.ref.WeakReference
 
+@OptIn(ExperimentalNativeApi::class)
 class MediaPickerController(
     override val permissionsController: PermissionsController
 ) : MediaPickerControllerProtocol {

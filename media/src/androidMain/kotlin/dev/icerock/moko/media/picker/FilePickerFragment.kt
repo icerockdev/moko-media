@@ -36,9 +36,9 @@ class FilePickerFragment : Fragment() {
             .start()
     }
 
+    @Suppress("UnreachableCode")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-
         val callbackData = codeCallbackMap[requestCode] ?: return
         codeCallbackMap.remove(requestCode)
 
