@@ -6,6 +6,7 @@ package dev.icerock.moko.media
 
 import kotlinx.cinterop.ByteVar
 import kotlinx.cinterop.CPointer
+import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.get
 import kotlinx.cinterop.reinterpret
 import kotlinx.cinterop.useContents
@@ -18,6 +19,7 @@ import platform.UIKit.UIGraphicsGetImageFromCurrentImageContext
 import platform.UIKit.UIImage
 import platform.UIKit.UIImageJPEGRepresentation
 
+@OptIn(ExperimentalForeignApi::class)
 actual class Bitmap(val image: UIImage) {
 
     actual fun toByteArray(): ByteArray {
@@ -34,7 +36,7 @@ actual class Bitmap(val image: UIImage) {
         val imageData = UIImageJPEGRepresentation(image, COMPRESSION_QUALITY)
             ?: throw IllegalArgumentException("image data is null")
 
-        return imageData.base64EncodedStringWithOptions(0)
+        return imageData.base64EncodedStringWithOptions(0u)
     }
 
     actual fun toBase64WithCompress(maxSize: Int): String {
@@ -49,12 +51,12 @@ actual class Bitmap(val image: UIImage) {
         UIGraphicsBeginImageContextWithOptions(CGSizeMake(newWidth, newHeight), false, 0.0)
         image.drawInRect(CGRectMake(0.0, 0.0, newWidth, newHeight))
         val newImage = UIGraphicsGetImageFromCurrentImageContext()
-        UIGraphicsEndImageContext();
+        UIGraphicsEndImageContext()
 
         val imageData = UIImageJPEGRepresentation(newImage!!, COMPRESSION_QUALITY)
             ?: throw IllegalArgumentException("image data is null")
 
-        return imageData.base64EncodedStringWithOptions(0)
+        return imageData.base64EncodedStringWithOptions(0u)
     }
 
     private companion object {

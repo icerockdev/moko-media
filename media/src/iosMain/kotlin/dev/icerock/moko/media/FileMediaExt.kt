@@ -6,6 +6,7 @@ package dev.icerock.moko.media
 
 import kotlinx.cinterop.ByteVar
 import kotlinx.cinterop.CPointer
+import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.get
 import kotlinx.cinterop.reinterpret
 import platform.Foundation.NSData
@@ -18,6 +19,7 @@ fun FileMedia.toNSData(): NSData {
     return NSData.dataWithContentsOfURL(url) ?: throw IllegalArgumentException("invalid file data")
 }
 
+@OptIn(ExperimentalForeignApi::class)
 actual fun FileMedia.toByteArray(): ByteArray {
     val data = toNSData()
     val bytes = data.bytes ?: throw IllegalArgumentException("file bytes is null")

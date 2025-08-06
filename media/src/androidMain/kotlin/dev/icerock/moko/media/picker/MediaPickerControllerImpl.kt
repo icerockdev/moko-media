@@ -19,7 +19,8 @@ import kotlin.coroutines.suspendCoroutine
 
 internal class MediaPickerControllerImpl(
     override val permissionsController: PermissionsController,
-    private val pickerFragmentTag: String,
+    private val mediaPickerFragmentTag: String,
+    private val imagePickerFragmentTag: String,
     private val filePickerFragmentTag: String
 ) : MediaPickerController {
     var fragmentManager: FragmentManager? = null
@@ -57,14 +58,14 @@ internal class MediaPickerControllerImpl(
             permissionsController.providePermission(permission)
         }
 
-        val currentFragment: Fragment? = fragmentManager.findFragmentByTag(pickerFragmentTag)
+        val currentFragment: Fragment? = fragmentManager.findFragmentByTag(imagePickerFragmentTag)
         val imagePickerFragment: ImagePickerFragment = if (currentFragment != null) {
             currentFragment as ImagePickerFragment
         } else {
             ImagePickerFragment.newInstance(maxWidth, maxHeight).also {
                 fragmentManager
                     .beginTransaction()
-                    .add(it, pickerFragmentTag)
+                    .add(it, imagePickerFragmentTag)
                     .commitNow()
             }
         }
@@ -86,14 +87,14 @@ internal class MediaPickerControllerImpl(
 
         permissionsController.providePermission(Permission.GALLERY)
 
-        val currentFragment: Fragment? = fragmentManager.findFragmentByTag(pickerFragmentTag)
+        val currentFragment: Fragment? = fragmentManager.findFragmentByTag(mediaPickerFragmentTag)
         val pickerFragment: MediaPickerFragment = if (currentFragment != null) {
             currentFragment as MediaPickerFragment
         } else {
             MediaPickerFragment().apply {
                 fragmentManager
                     .beginTransaction()
-                    .add(this, pickerFragmentTag)
+                    .add(this, mediaPickerFragmentTag)
                     .commitNow()
             }
         }
@@ -117,7 +118,7 @@ internal class MediaPickerControllerImpl(
             FilePickerFragment().apply {
                 fragmentManager
                     .beginTransaction()
-                    .add(this, pickerFragmentTag)
+                    .add(this, filePickerFragmentTag)
                     .commitNow()
             }
         }
@@ -132,7 +133,7 @@ internal class MediaPickerControllerImpl(
 
     private fun MediaSource.requiredPermissions(): List<Permission> {
         return when (this) {
-            MediaSource.GALLERY -> listOf(Permission.GALLERY)
+            MediaSource.GALLERY -> listOf()
             MediaSource.CAMERA -> listOf(Permission.CAMERA)
         }
     }

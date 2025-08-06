@@ -6,6 +6,7 @@ package dev.icerock.moko.media.picker
 
 import android.app.Activity
 import android.content.Intent
+import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
@@ -46,7 +47,7 @@ class ImagePickerFragment : Fragment() {
         photoFilePath = savedInstanceState?.getString(PHOTO_FILE_PATH_KEY)
     }
 
-    fun pickGalleryImage(callback: (Result<android.graphics.Bitmap>) -> Unit) {
+    fun pickGalleryImage(callback: (Result<Bitmap>) -> Unit) {
         val requestCode = codeCallbackMap.keys.sorted().lastOrNull() ?: 0
 
         codeCallbackMap[requestCode] =
@@ -61,7 +62,7 @@ class ImagePickerFragment : Fragment() {
         startActivityForResult(intent, requestCode)
     }
 
-    fun pickCameraImage(callback: (Result<android.graphics.Bitmap>) -> Unit) {
+    fun pickCameraImage(callback: (Result<Bitmap>) -> Unit) {
         val requestCode = codeCallbackMap.keys.sorted().lastOrNull() ?: 0
 
         val outputUri = createPhotoUri()
@@ -92,7 +93,9 @@ class ImagePickerFragment : Fragment() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
-        val callbackData = codeCallbackMap[requestCode] ?: return
+        val callbackData: CallbackData? = codeCallbackMap[requestCode]
+        if (callbackData == null) return
+
         codeCallbackMap.remove(requestCode)
 
         val callback = callbackData.callback
@@ -111,6 +114,7 @@ class ImagePickerFragment : Fragment() {
                     callback.invoke(Result.failure(IllegalArgumentException(data?.toString())))
                 }
             }
+
             is CallbackData.Camera -> {
                 processResult(callback, callbackData.outputUri)
             }
@@ -119,7 +123,7 @@ class ImagePickerFragment : Fragment() {
 
     @Suppress("ReturnCount")
     private fun processResult(
-        callback: (Result<android.graphics.Bitmap>) -> Unit,
+        callback: (Result<Bitmap>) -> Unit,
         uri: Uri
     ) {
         val contentResolver = requireContext().contentResolver
@@ -151,12 +155,12 @@ class ImagePickerFragment : Fragment() {
         callback.invoke(Result.success(bitmap))
     }
 
-    sealed class CallbackData(val callback: (Result<android.graphics.Bitmap>) -> Unit) {
-        class Gallery(callback: (Result<android.graphics.Bitmap>) -> Unit) :
+    sealed class CallbackData(val callback: (Result<Bitmap>) -> Unit) {
+        class Gallery(callback: (Result<Bitmap>) -> Unit) :
             CallbackData(callback)
 
         class Camera(
-            callback: (Result<android.graphics.Bitmap>) -> Unit,
+            callback: (Result<Bitmap>) -> Unit,
             val outputUri: Uri
         ) : CallbackData(callback)
     }

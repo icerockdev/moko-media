@@ -47,12 +47,12 @@ project build.gradle
 
 ```groovy
 dependencies {
-    commonMainApi("dev.icerock.moko:media:0.11.0")
+    commonMainApi("dev.icerock.moko:media:0.11.1")
 
     // Compose Multiplatform
-    commonMainApi("dev.icerock.moko:media-compose:0.11.0")
+    commonMainApi("dev.icerock.moko:media-compose:0.11.1")
 
-    commonTestImplementation("dev.icerock.moko:media-test:0.11.0")
+    commonTestImplementation("dev.icerock.moko:media-test:0.11.1")
 }
 ```
 
