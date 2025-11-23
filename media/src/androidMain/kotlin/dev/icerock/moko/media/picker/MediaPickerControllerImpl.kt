@@ -4,6 +4,7 @@
 
 package dev.icerock.moko.media.picker
 
+import androidx.activity.ComponentActivity
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.Lifecycle
@@ -25,8 +26,8 @@ internal class MediaPickerControllerImpl(
 ) : MediaPickerController {
     var fragmentManager: FragmentManager? = null
 
-    override fun bind(lifecycle: Lifecycle, fragmentManager: FragmentManager) {
-        permissionsController.bind(lifecycle, fragmentManager)
+    override fun bind(lifecycle: Lifecycle, fragmentManager: FragmentManager, activity: ComponentActivity) {
+        permissionsController.bind(activity)
 
         this.fragmentManager = fragmentManager
 

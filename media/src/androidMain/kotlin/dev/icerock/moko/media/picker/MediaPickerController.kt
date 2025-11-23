@@ -4,6 +4,7 @@
 
 package dev.icerock.moko.media.picker
 
+import androidx.activity.ComponentActivity
 import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.Lifecycle
 import dev.icerock.moko.media.Bitmap
@@ -19,7 +20,7 @@ actual interface MediaPickerController {
     actual suspend fun pickMedia(): Media
     actual suspend fun pickFiles(): FileMedia
 
-    fun bind(lifecycle: Lifecycle, fragmentManager: FragmentManager)
+    fun bind(lifecycle: Lifecycle, fragmentManager: FragmentManager, activity: ComponentActivity)
 
     companion object {
         operator fun invoke(
