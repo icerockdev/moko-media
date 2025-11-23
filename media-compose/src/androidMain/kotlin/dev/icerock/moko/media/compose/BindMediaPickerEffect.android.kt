@@ -5,6 +5,7 @@
 package dev.icerock.moko.media.compose
 
 import android.content.Context
+import androidx.activity.ComponentActivity
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.platform.LocalContext
@@ -22,7 +23,10 @@ actual fun BindMediaPickerEffect(mediaPickerController: MediaPickerController) {
 
     LaunchedEffect(mediaPickerController, lifecycleOwner, context) {
         val fragmentManager: FragmentManager = (context as FragmentActivity).supportFragmentManager
+        val activity: ComponentActivity = checkNotNull(context as? ComponentActivity) {
+            "$context context is not instance of ComponentActivity"
+        }
 
-        mediaPickerController.bind(lifecycleOwner.lifecycle, fragmentManager)
+        mediaPickerController.bind(lifecycleOwner.lifecycle, fragmentManager, activity)
     }
 }
