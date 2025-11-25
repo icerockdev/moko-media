@@ -1,5 +1,6 @@
 [versions]
 kotlinVersion = "1.9.10"
+androidxCoreVersion = "1.9.0"
 androidAppCompatVersion = "1.6.1"
 materialDesignVersion = "1.8.0"
 androidLifecycleVersion = "2.3.1"
@@ -11,14 +12,20 @@ mokoPermissionsVersion = "0.18.0"
 mokoTestVersion = "0.6.1"
 mokoMediaVersion = "0.12.0"
 composeJetBrainsVersion = "1.7.1"
+composeMaterialVersion = "1.4.1"
+composeActivityVersion = "1.7.0"
 
 [libraries]
+androidxCore = { module = "androidx.core:core", version.ref = "androidxCoreVersion" }
 appCompat = { module = "androidx.appcompat:appcompat", version.ref = "androidAppCompatVersion" }
 material = { module = "com.google.android.material:material", version.ref = "materialDesignVersion" }
 lifecycle = { module = "androidx.lifecycle:lifecycle-extensions", version.ref = "androidLifecycleVersion" }
 exifInterface = { module = "androidx.exifinterface:exifinterface", version.ref = "androidExifInterface" }
 mediaFilePicker = { module = "com.github.icerockdev:MaterialFilePicker", version.ref = "androidMediaFilePicker" }
 coroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutinesVersion" }
+
+composeMaterial = { module = "androidx.compose.material:material", version.ref = "composeMaterialVersion" }
+composeActivity = { module = "androidx.activity:activity-compose", version.ref = "composeActivityVersion" }
 
 mokoPermissions = { module = "dev.icerock.moko:permissions", version.ref = "mokoPermissionsVersion" }
 mokoPermissionsCompose = { module = "dev.icerock.moko:permissions-compose", version.ref = "mokoPermissionsVersion" }

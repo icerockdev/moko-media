@@ -30,7 +30,7 @@ class ImageSelectionViewModelTest {
     }
 
     @Test
-    fun `test successful bitmap`() {
+    fun `test ImageSelectionViewModel successful bitmap`() {
         val cameraImage = createBitmapMock()
         val galleryImage = createBitmapMock()
         val permissionsController: PermissionsController = createPermissionControllerMock()
@@ -46,5 +46,26 @@ class ImageSelectionViewModelTest {
         viewModel.onGalleryPressed()
 
         assertEquals(expected = galleryImage, actual = viewModel.selectedImage.value)
+    }
+
+    @Test
+    fun `test ComposeAppSampleViewModel successful bitmap`() {
+        val cameraImage = createBitmapMock()
+        val galleryImage = createBitmapMock()
+        val permissionsController: PermissionsController = createPermissionControllerMock()
+        val mediaPickerController: MediaPickerController = createMediaPickerControllerMock(
+            permissionsController = permissionsController,
+            cameraImageResult = cameraImage,
+            galleryImageResult = galleryImage
+        )
+        val viewModel = ComposeAppSampleViewModel(
+            mediaPickerController = mediaPickerController
+        )
+
+        viewModel.onCameraButtonClick()
+        assertEquals(expected = cameraImage, actual = viewModel.image.value)
+
+        viewModel.onGalleryButtonClick()
+        assertEquals(expected = galleryImage, actual = viewModel.image.value)
     }
 }
