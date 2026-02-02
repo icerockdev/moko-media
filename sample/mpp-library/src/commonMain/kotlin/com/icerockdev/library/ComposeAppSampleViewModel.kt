@@ -1,3 +1,7 @@
+/*
+ * Copyright 2019 IceRock MAG Inc. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package com.icerockdev.library
 
 import dev.icerock.moko.media.Bitmap
@@ -11,7 +15,7 @@ import kotlinx.coroutines.launch
 
 class ComposeAppSampleViewModel(
     val mediaPickerController: MediaPickerController
-): ViewModel() {
+) : ViewModel() {
     private val _image: MutableStateFlow<Bitmap?> = MutableStateFlow(null)
     val image: StateFlow<Bitmap?> get() = _image
 
@@ -23,6 +27,7 @@ class ComposeAppSampleViewModel(
         pickImage(MediaSource.CAMERA)
     }
 
+    @Suppress("TooGenericExceptionCaught")
     private fun pickImage(mediaSource: MediaSource) {
         viewModelScope.launch {
             try {
