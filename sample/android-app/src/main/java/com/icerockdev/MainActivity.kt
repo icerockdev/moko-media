@@ -24,7 +24,7 @@ class MainActivity : AppCompatActivity() {
             ImageSelectionViewModel(mediaPickerController)
         }
 
-        viewModel.mediaPickerController.bind(this)
+        viewModel.mediaPickerController.bind(lifecycle, supportFragmentManager)
 
         binding.cameraButton.setOnClickListener { viewModel.onCameraPressed() }
         binding.galleryButton.setOnClickListener { viewModel.onGalleryPressed() }

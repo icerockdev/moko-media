@@ -5,7 +5,6 @@
 package dev.icerock.moko.media.picker
 
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleObserver
@@ -26,20 +25,31 @@ internal class MediaPickerControllerImpl(
 ) : MediaPickerController {
     var fragmentManager: FragmentManager? = null
 
-    override fun bind(activity: FragmentActivity) {
-        permissionsController.bind(activity)
+    override fun bind(lifecycle: Lifecycle, fragmentManager: FragmentManager) {
+        val fragment: Fragment = fragmentManager.findFragmentByTag(HOST_FRAGMENT_TAG)
+            ?: Fragment().also { newFragment ->
+                fragmentManager.beginTransaction()
+                    .add(newFragment, HOST_FRAGMENT_TAG)
+                    .commitNow()
+            }
 
-        this.fragmentManager = activity.supportFragmentManager
+        permissionsController.bind(fragment.requireActivity())
+        fragmentManager
+            .beginTransaction()
+            .remove(fragment)
+            .commitNow()
+
+        this.fragmentManager = fragmentManager
 
         val observer = object : LifecycleObserver {
-
             @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
             fun onDestroyed(source: LifecycleOwner) {
                 this@MediaPickerControllerImpl.fragmentManager = null
                 source.lifecycle.removeObserver(this)
             }
         }
-        activity.lifecycle.addObserver(observer)
+
+        lifecycle.addObserver(observer)
     }
 
     override suspend fun pickImage(source: MediaSource): Bitmap {
@@ -137,5 +147,9 @@ internal class MediaPickerControllerImpl(
             MediaSource.GALLERY -> listOf()
             MediaSource.CAMERA -> listOf(Permission.CAMERA)
         }
+    }
+
+    companion object {
+        private const val HOST_FRAGMENT_TAG = "MediaPickerHostFragment"
     }
 }
