@@ -8,6 +8,7 @@ import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.LifecycleOwner
@@ -16,7 +17,7 @@ import dev.icerock.moko.media.picker.MediaPickerController
 @Suppress("FunctionNaming")
 @Composable
 actual fun BindMediaPickerEffect(mediaPickerController: MediaPickerController) {
-    val lifecycleOwner: LifecycleOwner = androidx.compose.ui.platform.LocalLifecycleOwner.current
+    val lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current
     val context: Context = LocalContext.current
 
     LaunchedEffect(mediaPickerController, lifecycleOwner, context) {

@@ -4,7 +4,8 @@
 
 package dev.icerock.moko.media.test
 
-import androidx.fragment.app.FragmentActivity
+import androidx.fragment.app.FragmentManager
+import androidx.lifecycle.Lifecycle
 import dev.icerock.moko.media.Bitmap
 import dev.icerock.moko.media.FileMedia
 import dev.icerock.moko.media.Media
@@ -35,7 +36,7 @@ actual open class MediaPickerControllerMock actual constructor(
         TODO("Not yet implemented")
     }
 
-    override fun bind(activity: FragmentActivity) {
+    override fun bind(lifecycle: Lifecycle, fragmentManager: FragmentManager) {
         TODO("Not yet implemented")
     }
 }
