@@ -47,12 +47,12 @@ project build.gradle
 
 ```groovy
 dependencies {
-    commonMainApi("dev.icerock.moko:media:0.11.1")
+    commonMainApi("dev.icerock.moko:media:0.12.0")
 
     // Compose Multiplatform
-    commonMainApi("dev.icerock.moko:media-compose:0.11.1")
+    commonMainApi("dev.icerock.moko:media-compose:0.12.0")
 
-    commonTestImplementation("dev.icerock.moko:media-test:0.11.1")
+    commonTestImplementation("dev.icerock.moko:media-test:0.12.0")
 }
 ```
 
@@ -84,10 +84,7 @@ val viewModel = getViewModel {
     ViewModel(mediaController)
 }
 
-viewModel.mediaController.bind(
-    lifecycle,
-    supportFragmentManager
-) // permissioncController bind automatically
+viewModel.mediaController.bind(lifecycle, supportFragmentManager) // permissioncController bind automatically
 ```
 
 iOS:
