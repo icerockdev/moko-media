@@ -26,18 +26,29 @@ internal class MediaPickerControllerImpl(
     var fragmentManager: FragmentManager? = null
 
     override fun bind(lifecycle: Lifecycle, fragmentManager: FragmentManager) {
-        permissionsController.bind(lifecycle, fragmentManager)
+        val fragment: Fragment = fragmentManager.findFragmentByTag(HOST_FRAGMENT_TAG)
+            ?: Fragment().also { newFragment ->
+                fragmentManager.beginTransaction()
+                    .add(newFragment, HOST_FRAGMENT_TAG)
+                    .commitNow()
+            }
+
+        permissionsController.bind(fragment.requireActivity())
+        fragmentManager
+            .beginTransaction()
+            .remove(fragment)
+            .commitNow()
 
         this.fragmentManager = fragmentManager
 
         val observer = object : LifecycleObserver {
-
             @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
             fun onDestroyed(source: LifecycleOwner) {
                 this@MediaPickerControllerImpl.fragmentManager = null
                 source.lifecycle.removeObserver(this)
             }
         }
+
         lifecycle.addObserver(observer)
     }
 
@@ -136,5 +147,9 @@ internal class MediaPickerControllerImpl(
             MediaSource.GALLERY -> listOf()
             MediaSource.CAMERA -> listOf(Permission.CAMERA)
         }
+    }
+
+    companion object {
+        private const val HOST_FRAGMENT_TAG = "MediaPickerHostFragment"
     }
 }
